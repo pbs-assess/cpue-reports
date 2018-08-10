@@ -1,0 +1,6 @@
+*.html
+*-cache
+*-fig
+
+*.rds
+*.csv

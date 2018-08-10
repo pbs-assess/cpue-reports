@@ -1,0 +1,277 @@
+---
+title: "`r params$species_proper` Bottom Trawl CPUE"
+author: "Sean C. Anderson"
+date: "`r Sys.Date()`"
+output: html_document
+params:
+   species_proper: "Petrale Sole"
+   area: !r c("5[CDE]+", "5[AB]+", "3[CD]+")
+   area_name: !r c("5CDE", "5AB", "3CD")
+   skip_single_variable_models: FALSE
+   era: "modern"
+---
+
+```{r setup, include=FALSE}
+spp <- gsub(" ", "-", gsub("\\/", "-", tolower(params$species_proper)))
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  comment = "#>",
+  fig.asp = 0.618,
+  cache.path = paste0(spp, "-", params$era, "-cache/"),
+  fig.path = paste0(spp, "-", params$era, "-fig/"),
+  echo = TRUE,
+  autodep = TRUE,
+  cache = TRUE,
+  cache.comments = FALSE
+)
+```
+
+```{r pkgs, cache=FALSE, warning=FALSE, message=FALSE}
+library("dplyr")
+library("ggplot2")
+library("gfplot")
+library("here")
+library("readr")
+library("purrr")
+ggplot2::theme_set(gfplot::theme_pbs())
+```
+
+```{r cpue}
+if (params$era == "modern") {
+  fi <- here("data/cpue-modern.rds")
+  if (!file.exists(fi)) {
+    d1996 <- gfplot::get_cpue_index(gear = "bottom trawl", min_cpue_year = 1996)
+    write_rds(d1996, fi)
+  } else {
+    d1996 <- read_rds(fi)
+  }
+} else {
+  fi <- here("data/cpue-historic.rds")
+  if (!file.exists(fi)) {
+    d <- gfplot::get_cpue_historic(species = NULL, end_year = 1995)
+    write_rds(d, fi)
+  } else {
+    d <- read_rds(fi)
+  }
+}
+```
+
+Define our fleet. See the help for `?gfplot::tidy_cpue_index` to see a definition of these arguments. <https://github.com/pbs-assess/gfplot>
+
+```{r define-fleet}
+if (params$era == "modern") {
+  define_fleet <- function(area, area_name) {
+    out <- gfplot::tidy_cpue_index(d1996,
+      species_common = tolower(params$species_proper),
+      gear = "bottom trawl",
+      use_alt_year = FALSE,
+      year_range = c(1996, 2017), 
+      lat_range = c(48, Inf),
+      min_positive_tows = 100,
+      min_positive_trips = 5,
+      min_yrs_with_trips = 5,
+      depth_band_width = 25,
+      area_grep_pattern = area,
+      depth_bin_quantiles = c(0.001, 0.999),
+      min_bin_prop = 0.001,
+      lat_band_width = 0.1)
+    out$area <- area_name
+    out
+  }
+  dfleet <- map2(params$area, params$area_name, define_fleet)
+} else {
+  stop("Not implemented yet.")
+}
+```
+
+The most frequent factor levels for fishing events that caught `r params$species_proper` are the reference levels. This only affects the relative scale of the final CPUE index, not the shape, since there are no interactions in our standardization model.
+
+Here, and throughout, `pos_catch` refers to if a fishing event caught (was positive) for  `r params$species_proper`.
+
+Total `r params$species_proper` catch and total effort for our 'fleet':
+
+```{r catch-effort, fig.asp=0.9}
+dfleet %>% bind_rows() %>% 
+  group_by(year, area) %>% 
+  summarise(
+    `Species catch` = sum(spp_catch)/1000, 
+    `Hours fished` = sum(hours_fished)/1000) %>% 
+  reshape2::melt(id.vars = c("year", "area")) %>%
+  ggplot(aes(year, value)) +
+  geom_line() +
+  facet_grid(variable~area, scales = "free_y") +
+  ylab("Value (1000 kg or 1000 hours)") + xlab("") +
+  ylim(0, NA)
+```
+
+Look at depth distribution across all fishing events:
+
+```{r cpue-depth, fig.asp=0.618}
+depth_bands <- as.numeric(as.character(unique(bind_rows(dfleet)$depth)))
+dfleet %>%
+  bind_rows() %>% 
+  mutate(`Fishing event\ncaught this species` = 
+      ifelse(pos_catch == 1, "Yes", "No")) %>% 
+  ggplot(aes(best_depth, fill = `Fishing event\ncaught this species`)) +
+  geom_histogram(binwidth = 10) +
+  ylim(0, NA) +
+  geom_vline(xintercept = depth_bands, lty = 2, col = "grey80") +
+  coord_cartesian(expand = FALSE) +
+  facet_wrap(~area, ncol = 2)
+```
+
+Inspect fishing event counts for each factor level for positive `r params$species_proper` fishing events only:
+
+```{r enough}
+check_n <- function(.d, column) {
+  filter(.d, pos_catch == 1) %>%
+    select(area, !!rlang::enquo(column)) %>%
+    table()
+}
+map(dfleet, check_n, locality)
+map(dfleet, check_n, depth)
+map(dfleet, check_n, month)
+map(dfleet, check_n, vessel)
+```
+
+Note that you can identify the base factor levels as the first level printed in the above output. The `locality` values refer to the locality codes but the `vessel` numbers are just randomized identifying numbers.
+
+Make bubble plots of fishing event counts. The open circles represent all fishing events and the shaded circles represent fishing events that were positive for `r params$species_proper`.
+
+```{r bubble-plots, fig.asp=0.75}
+for (i in seq_along(dfleet)) {
+  gfplot:::plot_predictor_bubbles(dfleet[[i]], "locality", reorder_group = TRUE) %>% print()
+  
+  dfleet[[i]] %>% mutate(depth = as.factor(as.character(depth))) %>% 
+    gfplot:::plot_predictor_bubbles("depth", reorder_group = FALSE) %>%
+    print()
+  
+  dfleet[[i]] %>% mutate(latitude = as.factor(as.character(latitude))) %>% 
+    gfplot:::plot_predictor_bubbles("latitude", reorder_group = FALSE) %>%
+    print()
+  
+  dfleet[[i]] %>% mutate(month = as.factor(as.character(month))) %>% 
+    gfplot:::plot_predictor_bubbles("month", reorder_group = FALSE) %>%
+    print()
+  
+  gfplot:::plot_predictor_bubbles(dfleet[[i]], "vessel", reorder_group = TRUE) %>%
+    print()
+}
+```
+
+Now we will fit the models. These are GLMs with a Tweedie / compound-Poisson-Gamma observation model. See the model here <https://github.com/pbs-assess/gfplot/blob/master/inst/tmb/tweedie_cpue.cpp>. Note that the `p` parameter, in [TMB notation](https://kaskr.github.io/adcomp/group__R__style__distribution.html#ga262f3c2d1cf36f322a62d902a608aae0), is bounded to be between 1 (fully Poisson) and 2 (fully Gamma). We will fit a model with only the year predictor, a model with each of the other predictors and year, and then a model with all of the predictors.
+
+```{r fit-cpue, results='hide', warning=FALSE, message=FALSE}
+formulas <- data_frame(
+  formula = c(
+    "cpue ~ year_factor",
+    "cpue ~ year_factor + depth",
+    "cpue ~ year_factor + month",
+    "cpue ~ year_factor + latitude",
+    "cpue ~ year_factor + locality",
+    "cpue ~ year_factor + vessel",
+    "cpue ~ year_factor + depth + month + latitude + locality + vessel"
+  ),
+  formula_version = c(
+    "Unstandardized",
+    "Depth",
+    "Month",
+    "Latitude",
+    "Locality",
+    "Vessel",
+    "Full standardization"
+  )
+)
+torun <- expand.grid(formula = formulas$formula,
+  area = params$area_name, stringsAsFactors = FALSE)
+torun <- inner_join(torun, formulas, by = "formula")
+
+if (params$era != "modern") {
+  torun <- filter(torun, !formula_version %in% c("Latitude", "Vessel"))
+}
+
+if (params$skip_single_variable_models) {
+  torun <- filter(torun, 
+    formula_version %in% c("Unstandardized", "Full standardization"))
+}
+
+file_model <- here(paste0("data/generated/cpue-1996-models-", spp, ".rds"))
+if (!file.exists(file_model)) {
+  model <- plyr::mlply(torun,
+    function(formula, area, formula_version) {
+    df <- dfleet[[which(params$area_name == area)]]
+    message("Fitting area ", area, " and model ", formula)
+    fit_cpue_index_tweedie(df, formula = as.formula(formula))
+  })
+  saveRDS(model, file_model)
+} else {
+  model <- readRDS(file_model)
+}
+
+predictions <- plyr::ldply(model, predict_cpue_index_tweedie)
+write_csv(predictions, 
+  here(paste0("data/generated/cpue-1996-predictions-", spp, ".csv")))
+```
+
+In the predictions data frame, `est_link` is the estimate on the link (log) scale, `se_link` is the standard error on the link scale, and `est`, `lwr`, `upr` are the estimate, lower 95%, and upper 95% confidence intervals on the natural (exponentiated) scale in kg/hours fished. All of the model versions are included.
+
+```{r header-show}
+glimpse(predictions)
+```
+
+Plot the coefficients from the full standardization model. Note that the estimates are with respect to the base or reference level, which has been set to the most common level for positive fishing events. The reference level is omitted from each of the panels.
+
+```{r coef-plot, fig.asp=1.4, fig.width=8}
+toplot <- which(attr(
+  model, "split_labels")$formula_version == "Full standardization")
+for (i in seq_along(params$area_name)) {
+  p <- plot_cpue_index_coefs(model[[toplot[i]]], type = "tweedie") + 
+    ggtitle(params$area_name[i])
+  print(p)
+}
+```
+
+Plot a comparison of the predictions at the base levels. The red line is the standardized version by one or more variables, the black solid line is a version with only a year predictor with the Tweedie observation model, the dashed line is the summed catch for the species divided by effort for all species each year. The ribbons indicate the 95% confidence intervals.
+
+```{r cpue-modern-predictions, fig.width=11, fig.asp=length(params$area)*0.2}
+arith_cpue_1996 <- dfleet %>%
+  bind_rows() %>% 
+  group_by(area, year) %>%
+  summarise(est = sum(spp_catch) / sum(hours_fished)) %>%
+  mutate(model = "Combined") %>%
+  group_by(area) %>%
+  mutate(geo_mean = exp(mean(log(est)))) %>%
+  mutate(est = est/geo_mean) %>%
+  ungroup()
+
+if (!params$skip_single_variable_models) {
+  gfplot:::plot_cpue_predictions(predictions, "Combined", scale = TRUE) +
+    geom_line(data = arith_cpue_1996, aes(year, est),
+      inherit.aes = FALSE, lty = 2) +
+    scale_x_continuous(breaks = seq(1990, 2050, 10))
+}
+```
+
+Zoom in on the fully standardized index for `r params$species_proper`:
+
+```{r predictions-stand, fig.asp=length(params$area)*0.55}
+predictions %>% 
+  filter(formula_version %in% c("Unstandardized", "Full standardization")) %>% 
+  gfplot:::plot_cpue_predictions("Combined", scale = TRUE) +
+  geom_line(data = arith_cpue_1996, aes(year, est),
+    inherit.aes = FALSE, lty = 2) +
+  scale_x_continuous(breaks = seq(1990, 2050, 10))
+```
+
+Session details:
+
+```{r session, echo=FALSE}
+si <- devtools::session_info(include_base = FALSE)
+si$platform
+filter(si$packages, `*` == "*", !package %in% 
+    c("usethis", "devtools", "graphics", "grDevices", 
+      "utils", "datasets", "lintr", "methods", "stats", "bindrcpp",
+      "testthat"))
+```
