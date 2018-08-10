@@ -1,0 +1,282 @@
+---
+title: "Rougheye and Blackspotted complex CPUE"
+author: "Sean Anderson"
+date: '2018-08-09'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  comment = "#>",
+  fig.asp = 0.618,
+  echo = TRUE,
+  autodep = TRUE,
+  cache = TRUE,
+  cache.comments = FALSE
+)
+```
+
+```{r install}
+# devtools::install_github("pbs-assess/gfplot", ref = "cf366e0b51")
+```
+
+```{r pkgs, cache=FALSE}
+library("dplyr")
+library("ggplot2")
+library("gfplot")
+library("here")
+ggplot2::theme_set(gfplot::theme_pbs())
+```
+
+```{r cpue-plot-glmm-standardizations, echo=FALSE}
+source("here/plot.R")
+```
+
+```{r cpue-read-historic}
+# fi <- here("data/historic-cpue-raw-data.rds")
+# if (!file.exists(fi)) {
+#   d <- gfplot::get_cpue_historic(species = NULL, end_year = 1995)
+#   readr::write_rds(d, fi)
+# } else {
+#   d <- readr::read_rds(fi)
+# }
+```
+
+```{r cpue-read-modern}
+fi <- here("data/cpue-modern.rds")
+if (!file.exists(fi)) {
+  d1996 <- gfplot::get_cpue_index(gear = "bottom trawl", min_cpue_year = 1996)
+  readr::write_rds(d1996, fi)
+} else {
+  d1996 <- readr::read_rds(fi)
+}
+```
+
+Define our fleet:
+
+```{r define-fleet}
+define_fleet <- function(area) {
+  gfplot::tidy_cpue_index(d1996,
+    species_common = "rougheye/blackspotted rockfish complex",
+    use_alt_year = FALSE,
+    year_range = c(1996, 2017), lat_range = c(48, Inf),
+    min_positive_tows = 100,
+    min_positive_trips = 5,
+    min_yrs_with_trips = 5,
+    area_grep_pattern = area,
+    lat_bin_quantiles = c(0, 1),
+    depth_bin_quantiles = c(0, 1),
+    gear = "BOTTOM TRAWL",
+    lat_band_width = 0.2)
+}
+dfleet <- define_fleet("^3C|^3D|^5A|^5B|^5C|^5D|^5E|^4B")
+```
+
+Some basic characteristics:
+
+```{r basic-char}
+range(dfleet$best_date)
+nrow(dfleet)
+table(dfleet$pos_catch)
+length(unique(dfleet$vessel))
+sum(dfleet$spp_catch) / 1000
+range(dfleet$best_depth)
+```
+
+Look at depths and possible depth bins for fishing events catching the species:
+
+```{r cpue-depth, fig.cap="Depth distribution across all fishing events that caught the species."}
+depth_bands <- seq(50, 500, 25)
+dfleet %>%
+  filter(pos_catch == 1) %>% 
+  ggplot(aes(best_depth)) +
+  geom_histogram(binwidth = 10) +
+  scale_x_continuous(breaks = seq(50, 550, 100), limits = c(0, 500)) +
+  ylim(0, NA) +
+  geom_vline(xintercept = depth_bands, lty = 2) +
+  coord_cartesian(expand = FALSE)
+```
+
+Bin the depth:
+
+```{r cpue-define-modern-fleet}
+dfleet <- filter(dfleet, best_depth >= min(depth_bands), best_depth <= max(depth_bands))
+dfleet <- dfleet %>%
+  mutate(depth_bin = gfplot:::factor_bin_clean(best_depth, depth_bands)) %>% 
+  mutate(cpue = spp_catch / hours_fished)
+dfleet$latitude_numer <- as.numeric(as.character(dfleet$latitude))
+```
+
+Lump together any factor levels that occur in less than 1% of the observations:
+
+```{r lump}
+dfleet$locality <- forcats::fct_lump(dfleet$locality, prop = 0.01, other_level = "9999")
+dfleet$depth_bin <- forcats::fct_lump(dfleet$depth_bin, prop = 0.01, other_level = "9999")
+dfleet$latitude <- forcats::fct_lump(dfleet$latitude, prop = 0.01, other_level = "9999")
+dfleet$month <- forcats::fct_lump(dfleet$month, prop = 0.01, other_level = "9999")
+dfleet$vessel <- forcats::fct_lump(dfleet$vessel, prop = 0.01, other_level = "9999")
+```
+
+Get the factor levels that are most common for fishing events that caught the species:
+
+```{r get-base-levels}
+pos_catch_fleet <- filter(dfleet, pos_catch == 1)
+base_month     <- get_most_common_level(pos_catch_fleet$month)
+base_depth_bin <- get_most_common_level(pos_catch_fleet$depth_bin)
+base_lat       <- get_most_common_level(pos_catch_fleet$latitude)
+base_vessel    <- get_most_common_level(pos_catch_fleet$vessel)
+base_locality  <- get_most_common_level(pos_catch_fleet$locality)
+```
+
+Order the following factor levels with the most frequent level as the reference level.
+
+```{r relevel}
+dfleet$locality <- relevel(dfleet$locality, ref = base_locality)
+dfleet$depth_bin <- relevel(dfleet$depth_bin, ref = base_depth_bin)
+dfleet$latitude <- relevel(dfleet$latitude, ref = base_lat)
+dfleet$vessel <- relevel(dfleet$vessel, ref = base_vessel)
+dfleet$month <- relevel(dfleet$month, ref = base_month)
+
+dfleet <- droplevels(dfleet)
+```
+
+Ensure there are observations of the species for each factor level:
+
+```{r enough}
+filter(dfleet, pos_catch == 1) %>%
+  pull(locality) %>% table()
+
+filter(dfleet, pos_catch == 1) %>%
+  pull(depth_bin) %>% table()
+
+filter(dfleet, pos_catch == 1) %>%
+  pull(month) %>% table()
+
+filter(dfleet, pos_catch == 1) %>%
+  pull(vessel) %>% table()
+```
+
+Look at totals by factor levels:
+
+```{r factor-tables}
+table(dfleet$locality)
+table(dfleet$depth_bin)
+table(dfleet$latitude)
+table(dfleet$month)
+table(dfleet$vessel)
+```
+
+Make bubble plots:
+
+```{r bubble-plots}
+dfleet$area <- "3CD5ABCDE4B"
+bubble_predictors(dfleet, "locality", reorder_group = TRUE)
+dfleet %>% mutate(depth_bin = as.factor(as.character(depth_bin))) %>% 
+  filter(depth_bin != "00-other") %>% 
+  bubble_predictors("depth_bin", reorder_group = FALSE)
+dfleet %>% mutate(latitude = as.factor(as.character(latitude))) %>% 
+  filter(latitude != "00-other") %>% 
+  bubble_predictors("latitude", reorder_group = FALSE)
+dfleet %>% mutate(month = as.factor(as.character(month))) %>% 
+  filter(month != "00-other") %>% 
+  bubble_predictors("month", reorder_group = FALSE)
+bubble_predictors(dfleet, "vessel", reorder_group = TRUE)
+```
+
+Distributions through time:
+
+```{r dist}
+plot_pcod_dist(dfleet, "latitude_numer")
+plot_pcod_dist(dfleet, "best_depth")
+```
+
+```{r fit-1996-cpue}
+areas <- unique(dfleet$area)
+formulas <- data_frame(
+  formula = c(
+    "cpue ~ year_factor",
+    "cpue ~ year_factor + depth_bin",
+    "cpue ~ year_factor + month",
+    "cpue ~ year_factor + latitude",
+    "cpue ~ year_factor + locality",
+    "cpue ~ year_factor + vessel",
+    "cpue ~ year_factor + depth_bin + month + latitude + locality + vessel"
+  ),
+  formula_version = c(
+    "Unstandardized",
+    "Depth",
+    "Month",
+    "Latitude",
+    "Locality",
+    "Vessel",
+    "Full standardization"
+  )
+)
+torun <- expand.grid(formula = formulas$formula,
+  area = areas, stringsAsFactors = FALSE)
+torun <- inner_join(torun, formulas, by = "formula")
+
+fi2 <- here::here("data/1996-cpue-models.rds")
+if (!file.exists(fi2)) {
+  m1996_re <- plyr::mlply(torun,
+    function(formula, area, formula_version) {
+    df <- dfleet[dfleet$area == area, , drop = FALSE]
+    df <- droplevels(df)
+    message("Fitting area ", area, " and model ", formula)
+    fit_cpue_index_tweedie(df, formula = as.formula(formula))
+  })
+  readr::write_rds(m1996_re, fi2)
+} else {
+  m1996_re <- readr::read_rds(fi2)
+}
+
+predictions_1996_re <- plyr::ldply(m1996_re, predict_cpue_index_tweedie)
+saveRDS(predictions_1996_re,
+  file = here::here("data/cpue-1996-predictions.rds")
+)
+```
+
+Plot coefs:
+
+```{r coef-plot, fig.asp=1}
+toplot <- which(attr(
+  m1996_re, "split_labels")$formula_version == "Full standardization")
+areas_plot <- unique(attr(m1996_re, "split_labels")$area)
+plot_cpue_index_coefs(m1996_re[[toplot[1]]], type = "tweedie", 
+  re_name = c("RE locality", "RE vessel")) + ggtitle(areas_plot[1])
+```
+
+Plot comparison of indices:
+
+```{r cpue-modern-predictions}
+arith_cpue_1996 <- dfleet %>%
+  group_by(area, year) %>%
+  summarise(est = sum(spp_catch) / sum(hours_fished)) %>%
+  mutate(model = "Combined") %>%
+  group_by(area) %>%
+  mutate(geo_mean = exp(mean(log(est)))) %>%
+  mutate(est = est/geo_mean) %>%
+  ungroup()
+
+plot_re_predictions(predictions_1996_re, "Combined", scale = TRUE) +
+  geom_line(data = arith_cpue_1996, aes(year, est),
+    inherit.aes = FALSE, lty = 2) +
+  scale_x_continuous(breaks = seq(1990, 2050, 10)) +
+  facet_wrap(~formula_version)
+```
+
+Zoom in on fully standardized:
+
+```{r predictions-stand}
+predictions_1996_re %>% 
+  filter(formula_version %in% c("Unstandardized", "Full standardization")) %>% 
+  plot_re_predictions("Combined", scale = TRUE) +
+  geom_line(data = arith_cpue_1996, aes(year, est),
+    inherit.aes = FALSE, lty = 2) +
+  scale_x_continuous(breaks = seq(1990, 2050, 10))
+```
+
