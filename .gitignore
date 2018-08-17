@@ -1,6 +1,7 @@
 *.html
 *-cache
 *-fig
-
 *.rds
 *.csv
+.Rhistory
+.Rproj.user

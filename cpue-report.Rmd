@@ -4,11 +4,12 @@ author: "Sean C. Anderson"
 date: "`r Sys.Date()`"
 output: html_document
 params:
-   species_proper: "Petrale Sole"
-   area: !r c("5[CDE]+", "5[AB]+", "3[CD]+")
-   area_name: !r c("5CDE", "5AB", "3CD")
-   skip_single_variable_models: FALSE
-   era: "modern"
+   species_proper: "Pacific Cod"
+   area: !r c("3[CD]+")
+   area_name: !r c("3CD")
+   skip_single_variable_models: TRUE
+   era: "historic"
+   april1_year: TRUE
 ---
 
 ```{r setup, include=FALSE}
@@ -35,6 +36,7 @@ library("gfplot")
 library("here")
 library("readr")
 library("purrr")
+library("glmmTMB")
 ggplot2::theme_set(gfplot::theme_pbs())
 ```
 
@@ -50,7 +52,8 @@ if (params$era == "modern") {
 } else {
   fi <- here("data/cpue-historic.rds")
   if (!file.exists(fi)) {
-    d <- gfplot::get_cpue_historic(species = NULL, end_year = 1995)
+    d <- gfplot::get_cpue_historic(species = NULL, end_year = 1995, 
+      alt_year_start_date = "04-01")
     write_rds(d, fi)
   } else {
     d <- read_rds(fi)
@@ -66,7 +69,8 @@ if (params$era == "modern") {
     out <- gfplot::tidy_cpue_index(d1996,
       species_common = tolower(params$species_proper),
       gear = "bottom trawl",
-      use_alt_year = FALSE,
+      alt_year_start_date = "04-01",
+      use_alt_year = params$april1_year,
       year_range = c(1996, 2017), 
       lat_range = c(48, Inf),
       min_positive_tows = 100,
@@ -82,7 +86,18 @@ if (params$era == "modern") {
   }
   dfleet <- map2(params$area, params$area_name, define_fleet)
 } else {
-  stop("Not implemented yet.")
+  define_fleet <- function(area, area_name) {
+    out <- gfplot::tidy_cpue_historic(d,
+      species_common = tolower(params$species_proper),
+      use_alt_year = params$april1_year,
+      depth_band_width = 25,
+      area_grep_pattern = area,
+      depth_bin_quantiles = c(0.001, 0.999),
+      min_bin_prop = 0.001)
+    out$area <- area_name
+    out
+  }
+  dfleet <- map2(params$area, params$area_name, define_fleet)
 }
 ```
 
@@ -133,7 +148,8 @@ check_n <- function(.d, column) {
 map(dfleet, check_n, locality)
 map(dfleet, check_n, depth)
 map(dfleet, check_n, month)
-map(dfleet, check_n, vessel)
+if (params$era == "modern")
+  map(dfleet, check_n, vessel)
 ```
 
 Note that you can identify the base factor levels as the first level printed in the above output. The `locality` values refer to the locality codes but the `vessel` numbers are just randomized identifying numbers.
@@ -148,9 +164,11 @@ for (i in seq_along(dfleet)) {
     gfplot:::plot_predictor_bubbles("depth", reorder_group = FALSE) %>%
     print()
   
-  dfleet[[i]] %>% mutate(latitude = as.factor(as.character(latitude))) %>% 
-    gfplot:::plot_predictor_bubbles("latitude", reorder_group = FALSE) %>%
-    print()
+  if (params$era == "modern") {
+    dfleet[[i]] %>% mutate(latitude = as.factor(as.character(latitude))) %>% 
+      gfplot:::plot_predictor_bubbles("latitude", reorder_group = FALSE) %>%
+      print()
+  }
   
   dfleet[[i]] %>% mutate(month = as.factor(as.character(month))) %>% 
     gfplot:::plot_predictor_bubbles("month", reorder_group = FALSE) %>%
@@ -164,46 +182,72 @@ for (i in seq_along(dfleet)) {
 Now we will fit the models. These are GLMs with a Tweedie / compound-Poisson-Gamma observation model. See the model here <https://github.com/pbs-assess/gfplot/blob/master/inst/tmb/tweedie_cpue.cpp>. Note that the `p` parameter, in [TMB notation](https://kaskr.github.io/adcomp/group__R__style__distribution.html#ga262f3c2d1cf36f322a62d902a608aae0), is bounded to be between 1 (fully Poisson) and 2 (fully Gamma). We will fit a model with only the year predictor, a model with each of the other predictors and year, and then a model with all of the predictors.
 
 ```{r fit-cpue, results='hide', warning=FALSE, message=FALSE}
-formulas <- data_frame(
+for (i in seq_along(dfleet)) {
+  dfleet[[i]]$year_locality <- paste(dfleet[[i]]$year_factor, dfleet[[i]]$locality)
+}
+
+if (params$era == "modern") {
+  formulas <- data_frame(
+    formula = c(
+      "cpue ~ 0 + year_factor",
+      "cpue ~ 0 + year_factor + depth",
+      "cpue ~ 0 + year_factor + month",
+      "cpue ~ 0 + year_factor + latitude",
+      "cpue ~ 0 + year_factor + (1 | locality)",
+      "cpue ~ 0 + year_factor + (1 | vessel)",
+      "cpue ~ 0 + year_factor + depth + month + latitude + (1 | locality) + (1 | vessel)",
+      "cpue ~ 0 + year_factor + depth + month + latitude + (1 | locality) + (1 | vessel) + (1 | year_locality)"
+    ),
+    formula_version = c(
+      "Unstandardized",
+      "Depth",
+      "Month",
+      "Latitude",
+      "Locality",
+      "Vessel",
+      "Full standardization minus interactions",
+      "Full standardization"
+    )
+  )
+} else {
+  formulas <- data_frame(
   formula = c(
-    "cpue ~ year_factor",
-    "cpue ~ year_factor + depth",
-    "cpue ~ year_factor + month",
-    "cpue ~ year_factor + latitude",
-    "cpue ~ year_factor + locality",
-    "cpue ~ year_factor + vessel",
-    "cpue ~ year_factor + depth + month + latitude + locality + vessel"
+    "cpue ~ 0 + year_factor",
+    "cpue ~ 0 + year_factor + depth",
+    "cpue ~ 0 + year_factor + month",
+    "cpue ~ 0 + year_factor + (1 | locality)",
+    "cpue ~ 0 + year_factor + depth + month + (1 | locality)",
+    "cpue ~ 0 + year_factor + depth + month + (1 | locality) + (1 | year_locality)"
   ),
   formula_version = c(
     "Unstandardized",
     "Depth",
     "Month",
-    "Latitude",
     "Locality",
-    "Vessel",
+    "Full standardization minus interactions",
     "Full standardization"
   )
 )
+}
+
 torun <- expand.grid(formula = formulas$formula,
   area = params$area_name, stringsAsFactors = FALSE)
 torun <- inner_join(torun, formulas, by = "formula")
 
-if (params$era != "modern") {
-  torun <- filter(torun, !formula_version %in% c("Latitude", "Vessel"))
-}
-
 if (params$skip_single_variable_models) {
   torun <- filter(torun, 
-    formula_version %in% c("Unstandardized", "Full standardization"))
+    formula_version %in% c("Unstandardized", "Full standardization minus interactions",
+      "Full standardization"))
 }
 
-file_model <- here(paste0("data/generated/cpue-1996-models-", spp, ".rds"))
+file_model <- here(paste0("data/generated/cpue-1996-models-", spp, "-", params$era, ".rds"))
 if (!file.exists(file_model)) {
-  model <- plyr::mlply(torun,
-    function(formula, area, formula_version) {
+  system.time({
+  model <- plyr::mlply(torun, function(formula, area, formula_version) {
     df <- dfleet[[which(params$area_name == area)]]
     message("Fitting area ", area, " and model ", formula)
-    fit_cpue_index_tweedie(df, formula = as.formula(formula))
+    fit_cpue_index_glmmtmb(df, as.formula(formula))
+    })
   })
   saveRDS(model, file_model)
 } else {
@@ -212,7 +256,7 @@ if (!file.exists(file_model)) {
 
 predictions <- plyr::ldply(model, predict_cpue_index_tweedie)
 write_csv(predictions, 
-  here(paste0("data/generated/cpue-1996-predictions-", spp, ".csv")))
+  here(paste0("data/generated/cpue-1996-predictions-", spp, "-", params$era, ".csv")))
 ```
 
 In the predictions data frame, `est_link` is the estimate on the link (log) scale, `se_link` is the standard error on the link scale, and `est`, `lwr`, `upr` are the estimate, lower 95%, and upper 95% confidence intervals on the natural (exponentiated) scale in kg/hours fished. All of the model versions are included.
@@ -224,13 +268,13 @@ glimpse(predictions)
 Plot the coefficients from the full standardization model. Note that the estimates are with respect to the base or reference level, which has been set to the most common level for positive fishing events. The reference level is omitted from each of the panels.
 
 ```{r coef-plot, fig.asp=1.4, fig.width=8}
-toplot <- which(attr(
-  model, "split_labels")$formula_version == "Full standardization")
-for (i in seq_along(params$area_name)) {
-  p <- plot_cpue_index_coefs(model[[toplot[i]]], type = "tweedie") + 
-    ggtitle(params$area_name[i])
-  print(p)
-}
+# toplot <- which(attr(
+#   model, "split_labels")$formula_version == "Full standardization RE")
+# for (i in seq_along(params$area_name)) {
+#   p <- plot_cpue_index_coefs(model[[toplot[i]]], type = "tweedie") + 
+#     ggtitle(params$area_name[i])
+#   print(p)
+# }
 ```
 
 Plot a comparison of the predictions at the base levels. The red line is the standardized version by one or more variables, the black solid line is a version with only a year predictor with the Tweedie observation model, the dashed line is the summed catch for the species divided by effort for all species each year. The ribbons indicate the 95% confidence intervals.
@@ -250,7 +294,7 @@ if (!params$skip_single_variable_models) {
   gfplot:::plot_cpue_predictions(predictions, "Combined", scale = TRUE) +
     geom_line(data = arith_cpue_1996, aes(year, est),
       inherit.aes = FALSE, lty = 2) +
-    scale_x_continuous(breaks = seq(1990, 2050, 10))
+    scale_x_continuous(breaks = seq(1990, 2050, 5))
 }
 ```
 
@@ -258,11 +302,20 @@ Zoom in on the fully standardized index for `r params$species_proper`:
 
 ```{r predictions-stand, fig.asp=length(params$area)*0.55}
 predictions %>% 
-  filter(formula_version %in% c("Unstandardized", "Full standardization")) %>% 
+  filter(formula_version %in% c("Unstandardized", "Full standardization RE")) %>% 
   gfplot:::plot_cpue_predictions("Combined", scale = TRUE) +
   geom_line(data = arith_cpue_1996, aes(year, est),
     inherit.aes = FALSE, lty = 2) +
-  scale_x_continuous(breaks = seq(1990, 2050, 10))
+  scale_x_continuous(breaks = seq(1990, 2050, 5))
+
+predictions %>%
+  group_by(formula_version, model, area) %>%
+  mutate(geo_mean = exp(mean(log(est)))) %>%
+  mutate(upr = upr / geo_mean, lwr = lwr / geo_mean, est = est / geo_mean) %>%
+  ungroup() %>% 
+  ggplot(aes(year, est, ymin = lwr, ymax = upr, 
+    colour = formula_version, fill = formula_version)) + geom_line() +
+  geom_ribbon(alpha = 0.5)
 ```
 
 Session details:
