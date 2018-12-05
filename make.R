@@ -50,6 +50,8 @@ for (spp_i in seq_along(flat_species)) {
     ),
     output_file = paste0(to_filename(flat_species[spp_i]), "-cpue-modern.html")
   )
+  rm(d1996, dfleet, model)
+  gc()
 }
 
 for (spp_i in seq_along(flat_species)) {
@@ -149,4 +151,16 @@ check %>%
   geom_ribbon(alpha = 0.5) +
   facet_grid(formula_version~area) +
   ylab("CPUE (kg/hour) divided\nby geometric mean")
+
+  params = list(
+    species_proper = "Widow Rockfish",
+    skip_single_variable_models = FALSE,
+    area = c("^3C|^3D|^5A|^5B|^5C|^5D|^5E|^4B"),
+    area_name = c("3CD5ABCD"),
+    april1_year = FALSE,
+    min_year_historic = 1978,
+    era = "historic"
+  ),
+  output_file = "widow-rockfish-cpue-historic.html"
+)
 
