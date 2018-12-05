@@ -336,7 +336,7 @@ Session details:
 ```{r session, echo=FALSE}
 si <- devtools::session_info(include_base = FALSE)
 si$platform
-filter(si$packages, `*` == "*", !package %in% 
+filter(si$packages, attached, !package %in% 
     c("usethis", "devtools", "graphics", "grDevices", 
       "utils", "datasets", "lintr", "methods", "stats", "bindrcpp",
       "testthat"))
