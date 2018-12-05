@@ -5,3 +5,5 @@
 *.csv
 .Rhistory
 .Rproj.user
+*cache*
+*_files*
