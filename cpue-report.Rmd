@@ -256,7 +256,7 @@ write_csv(predictions,
   here(paste0("data/generated/cpue-predictions-", spp, "-", params$era, "-", params$area_name, ".csv")))
 ```
 
-In the predictions data frame (file `r paste0("cpue-predictions-", spp, "-", params$era, ".csv")`, `est_link` is the estimate on the link (log) scale, `se_link` is the standard error on the link scale, and `est`, `lwr`, `upr` are the estimate, lower 95%, and upper 95% confidence intervals on the natural (exponentiated) scale in kg/hours fished. All of the model versions are included.
+In the predictions data frame (file `r paste0("cpue-predictions-", spp, "-", params$era,  "-", params$area_name, ".csv")`, `est_link` is the estimate on the link (log) scale, `se_link` is the standard error on the link scale, and `est`, `lwr`, `upr` are the estimate, lower 95%, and upper 95% confidence intervals on the natural (exponentiated) scale in kg/hours fished. All of the model versions are included.
 
 ```{r header-show, echo=FALSE, eval=FALSE}
 glimpse(predictions)
