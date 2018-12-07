@@ -1,5 +1,10 @@
+source('trash-cache.R')
+env <- new.env(parent = baseenv())
+
 # ------------------------------------------------------------------------------
 
+trash_cache('rougheye', 'modern', '5DE')
+trash_cache('rougheye', 'modern', '3CD5AB')
 rmarkdown::render("cpue-report.Rmd",
   params = list(
     species_proper = "Rougheye/Blackspotted Rockfish Complex",
@@ -9,7 +14,8 @@ rmarkdown::render("cpue-report.Rmd",
     april1_year = FALSE,
     era = "modern"
   ),
-  output_file = "rougheye-cpue-modern-3CD5AB.html"
+  output_file = "rougheye-cpue-modern-3CD5AB.html",
+  envir = env
 )
 
 rmarkdown::render("cpue-report.Rmd",
@@ -21,7 +27,8 @@ rmarkdown::render("cpue-report.Rmd",
     april1_year = FALSE,
     era = "modern"
   ),
-  output_file = "rougheye-cpue-modern-5DE.html"
+  output_file = "rougheye-cpue-modern-5DE.html",
+  envir = env
 )
 
 
@@ -35,7 +42,8 @@ rmarkdown::render("cpue-report.Rmd",
     april1_year = FALSE,
     era = "historic"
   ),
-  output_file = "rougheye-cpue-historic.html"
+  output_file = "rougheye-cpue-historic.html",
+  envir = env
 )
 
 # ------------------------------------------------------------------------------
@@ -61,10 +69,9 @@ for (spp_i in seq_along(flat_species)) {
       skip_single_variable_models = TRUE,
       era = "modern"
     ),
-    output_file = paste0(to_filename(flat_species[spp_i]), "-cpue-modern.html")
+    output_file = paste0(to_filename(flat_species[spp_i]), "-cpue-modern.html"),
+    envir = env
   )
-  rm(d1996, dfleet, model)
-  gc()
 }
 
 for (spp_i in seq_along(flat_species)) {
@@ -76,7 +83,8 @@ for (spp_i in seq_along(flat_species)) {
       skip_single_variable_models = TRUE,
       era = "historic"
     ),
-    output_file = paste0(to_filename(flat_species[spp_i]), "-cpue-historic.html")
+    output_file = paste0(to_filename(flat_species[spp_i]), "-cpue-historic.html"),
+    envir = env
   )
 }
 
