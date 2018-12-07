@@ -3,14 +3,27 @@
 rmarkdown::render("cpue-report.Rmd",
   params = list(
     species_proper = "Rougheye/Blackspotted Rockfish Complex",
-    area = c("^3C|^3D|^5A|^5B|^5C|^5D|^5E|^4B"),
-    area_name = c("3CD5ABCDE4B"),
-    skip_single_variable_models = FALSE,
+    area = c("^3C|^3D|^5A|^5B"),
+    area_name = c("3CD5AB"),
+    skip_single_variable_models = TRUE,
     april1_year = FALSE,
     era = "modern"
   ),
-  output_file = "rougheye-cpue-modern.html"
+  output_file = "rougheye-cpue-modern-3CD5AB.html"
 )
+
+rmarkdown::render("cpue-report.Rmd",
+  params = list(
+    species_proper = "Rougheye/Blackspotted Rockfish Complex",
+    area = c("^5D|^5E"),
+    area_name = c("5DE"),
+    skip_single_variable_models = TRUE,
+    april1_year = FALSE,
+    era = "modern"
+  ),
+  output_file = "rougheye-cpue-modern-5DE.html"
+)
+
 
 rmarkdown::render("cpue-report.Rmd",
   params = list(
