@@ -5,7 +5,7 @@ rmarkdown::render("cpue-report.Rmd",
     species_proper = "Rougheye/Blackspotted Rockfish Complex",
     area = c("^3C|^3D|^5A|^5B"),
     area_name = c("3CD5AB"),
-    skip_single_variable_models = TRUE,
+    skip_single_variable_models = FALSE,
     april1_year = FALSE,
     era = "modern"
   ),
@@ -17,7 +17,7 @@ rmarkdown::render("cpue-report.Rmd",
     species_proper = "Rougheye/Blackspotted Rockfish Complex",
     area = c("^5D|^5E"),
     area_name = c("5DE"),
-    skip_single_variable_models = TRUE,
+    skip_single_variable_models = FALSE,
     april1_year = FALSE,
     era = "modern"
   ),
@@ -102,78 +102,3 @@ rmarkdown::render("cpue-report.Rmd",
   ),
   output_file = "pacific-cod-cpue-historic.html"
 )
-
-###############
-# historic:
-now <- read.csv("data/generated/cpue-1996-predictions-pacific-cod-historic.csv", stringsAsFactors = FALSE) %>%
-  filter(formula_version %in% c("Unstandardized", "Full standardization",
-    "Full standardization minus interactions")) %>%
-  select(-formula) %>%
-  mutate(when = "now")
-
-library(dplyr)
-old <- readRDS("~/src/pcod-scenarios-2018/data/generated/cpue-1996-re-predictions-tweedie.rds")
-old <- filter(old, formula_version %in% c("Unstandardized", "Full standardization")) %>%
-  mutate(when = "old") %>%
-  mutate(formula_version = gsub("Full standardization",
-    "Full standardization minus interactions", formula_version)) %>%
-  select(-formula)
-
-check <- bind_rows(old, now)
-
-library(ggplot2)
-check %>%
-  group_by(formula_version, model, area, when) %>%
-  mutate(geo_mean = exp(mean(log(est)))) %>%
-  mutate(upr = upr / geo_mean, lwr = lwr / geo_mean, est = est / geo_mean) %>%
-  ungroup() %>%
-  ggplot(aes(year, est, ymin = lwr, ymax = upr,
-    colour = when, fill = when)) + geom_line() +
-  geom_ribbon(alpha = 0.5) +
-  facet_grid(formula_version~area) +
-  ylab("CPUE (kg/hour) divided\nby geometric mean")
-
-
-###############
-# modern:
-now <- read.csv("data/generated/cpue-1996-predictions-pacific-cod-modern.csv",
-  stringsAsFactors = FALSE) %>%
-  filter(formula_version %in% c("Unstandardized", "Full standardization",
-    "Full standardization minus interactions")) %>%
-  select(-formula) %>%
-  mutate(when = "now")
-
-library(dplyr)
-old <- readRDS("~/Desktop/cpue-1996-re-predictions-tweedie.rds")
-old <- filter(old, formula_version %in% c("Unstandardized", "Full standardization")) %>%
-  mutate(when = "old") %>%
-  mutate(formula_version = gsub("Full standardization",
-    "Full standardization minus interactions", formula_version)) %>%
-  select(-formula)
-
-check <- bind_rows(old, now)
-
-library(ggplot2)
-check %>%
-  group_by(formula_version, model, area, when) %>%
-  mutate(geo_mean = exp(mean(log(est)))) %>%
-  mutate(upr = upr / geo_mean, lwr = lwr / geo_mean, est = est / geo_mean) %>%
-  ungroup() %>%
-  ggplot(aes(year, est, ymin = lwr, ymax = upr,
-    colour = when, fill = when)) + geom_line() +
-  geom_ribbon(alpha = 0.5) +
-  facet_grid(formula_version~area) +
-  ylab("CPUE (kg/hour) divided\nby geometric mean")
-
-  params = list(
-    species_proper = "Widow Rockfish",
-    skip_single_variable_models = FALSE,
-    area = c("^3C|^3D|^5A|^5B|^5C|^5D|^5E|^4B"),
-    area_name = c("3CD5ABCD"),
-    april1_year = FALSE,
-    min_year_historic = 1978,
-    era = "historic"
-  ),
-  output_file = "widow-rockfish-cpue-historic.html"
-)
-
