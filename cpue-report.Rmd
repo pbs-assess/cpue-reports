@@ -399,19 +399,7 @@ predictions %>%
 #   ylab("CPUE (kg/hour) divided\nby geometric mean")
 ```
 
-Session details:
-
-```{r session, echo=FALSE}
-si <- devtools::session_info(include_base = FALSE)
-si$platform
-packages <- dplyr::filter(si$packages, attached, !package %in% 
-    c("usethis", "devtools", "graphics", "grDevices", 
-      "utils", "datasets", "lintr", "methods", "stats", "bindrcpp",
-      "testthat"))
-dplyr::select(packages, package, loadedversion, date, source)
-```
-
-The specific version of the code used to generate this report can be found here:
+The code version used to generate this report can be found at:
 
 ```{r hash, cache=FALSE, echo=FALSE}
 get_sha <- function(path) {
@@ -427,4 +415,17 @@ get_sha <- function(path) {
 sha <- get_sha("pbs-assess/cpue-reports")
 ```
 
-<`r paste0("https://github.com/pbs-assess/gfplot/tree/", sha)`>
+<`r paste0("https://github.com/pbs-assess/cpue-reports/tree/", sha)`>
+
+Session details:
+
+```{r session, echo=FALSE}
+si <- devtools::session_info(include_base = FALSE)
+si$platform
+packages <- dplyr::filter(si$packages, attached, !package %in% 
+    c("usethis", "devtools", "graphics", "grDevices", 
+      "utils", "datasets", "lintr", "methods", "stats", "bindrcpp",
+      "testthat"))
+dplyr::select(packages, package, loadedversion, date, source)
+```
+
