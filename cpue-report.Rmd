@@ -1,9 +1,10 @@
 ---
 title: "`r params$species_proper` Bottom Trawl CPUE"
-author: "Sean C. Anderson"
+author: "`r params$author`"
 date: "`r Sys.Date()`"
 output: html_document
 params:
+   author: "Sean C. Anderson"
    species_proper: "Pacific Cod"
    area: !r c("3[CD]+")
    area_name: !r c("3CD")
