@@ -9,7 +9,7 @@ params:
    area: !r c("3[CD]+")
    area_name: !r c("3CD")
    skip_single_variable_models: TRUE
-   era: "historic"
+   era: "modern"
    april1_year: FALSE
    min_year_historic: 1956
 ---
@@ -291,19 +291,20 @@ make_fe_plots <- function(object) {
     labs(x = "Coefficient value (log space)", y = "Predictor value")
 }
 make_re_dat <- function(object) {
-  re <- ranef(object)
+  re <- glmmTMB::ranef(object)
   plyr::ldply(re$cond, function(x) {
     sud <- as.data.frame(x)
     sud$par_value <- row.names(sud)
     row.names(sud) <- NULL
     sud
-  }) %>% 
+  }) %>%
     rename(par_group = .id) %>%
-    rename(est = `(Intercept)`) %>% 
-    as_tibble() %>% 
-    mutate(loc_group = gsub("^([0-9]+)[ -]*([0-9a-zA-Z]+)$", "\\2", par_value)) %>% 
-    mutate(loc_year = gsub("^([0-9]+)[ -]*[0-9a-zA-Z]+$", "\\1", par_value))
+    rename(est = `(Intercept)`) %>%
+    as_tibble() %>%
+    mutate(loc_group = gsub("^([0-9]+)[ -]*([0-9a-zA-Z-]+)$", "\\2", par_value)) %>%
+    mutate(loc_year = gsub("^([0-9]+)[ -]*[0-9a-zA-Z-]+$", "\\1", par_value))
 }
+  
 make_re_plots <- function(object, re_names = c("locality")) {
   re <- make_re_dat(object)
   filter(re, par_group %in% re_names) %>% 
@@ -316,12 +317,13 @@ make_re_plots <- function(object, re_names = c("locality")) {
 }
 make_year_locality_plots <- function(object) {
   re <- make_re_dat(object)
-  filter(re, par_group == "year_locality") %>% 
+  filter(re, par_group == "year_locality") %>%
     ggplot(aes_string("as.numeric(loc_year)", "est", group = "loc_group")) +
     geom_hline(yintercept = 0, lty = 2, alpha = 0.4) +
     geom_point(alpha = 0.7) +
     geom_line(alpha = 0.3) +
-    # facet_wrap(~loc_group) +
+    facet_wrap(~loc_group) +
+    scale_x_continuous(breaks = seq(1900, 3000, 10)) +
     theme_pbs() + guides(shape = FALSE, colour = FALSE) +
     labs(x = "Year", y = "Random intercept\n(interaction) value (log space)")
 }
