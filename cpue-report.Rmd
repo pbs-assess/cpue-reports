@@ -1,5 +1,5 @@
 ---
-title: "`r params$species_proper` Bottom Trawl CPUE"
+title: "`r paste(params$species_proper, params$era, params$area_name)` bottom trawl CPUE"
 author: "`r params$author`"
 date: "`r Sys.Date()`"
 output: html_document
@@ -333,7 +333,7 @@ make_year_locality_plots <- function(object) {
 toplot <- which(attr(
   model, "split_labels")$formula_version == "Full standardization")
 for (i in seq_along(params$area_name)) {
-  p <- make_fe_plots(model[[toplot[i]]]) + ggtitle(params$area_name[i])
+  p <- make_fe_plots(model[[toplot[i]]]) + ggplot2::ggtitle(params$area_name[i])
   print(p)
 }
 ```
@@ -342,14 +342,14 @@ for (i in seq_along(params$area_name)) {
 for (i in seq_along(params$area_name)) {
   p <- make_re_plots(model[[toplot[i]]],
     re_names = if (params$era == "modern") c("locality", "vessel") else "locality"
-    ) + ggtitle(params$area_name[i])
+    ) + ggplot2::ggtitle(params$area_name[i])
   print(p)
 }
 ```
 
-```{r cpue-coef-plot3, fig.asp=0.45, echo=FALSE}
+```{r cpue-coef-plot3, fig.asp=length(params$area), echo=FALSE}
 for (i in seq_along(params$area_name)) {
-  p <- make_year_locality_plots(model[[toplot[i]]]) + ggtitle(params$area_name[i])
+  p <- make_year_locality_plots(model[[toplot[i]]]) + ggplot2::ggtitle(params$area_name[i])
   print(p)
 }
 ```
@@ -404,8 +404,27 @@ Session details:
 ```{r session, echo=FALSE}
 si <- devtools::session_info(include_base = FALSE)
 si$platform
-filter(si$packages, attached, !package %in% 
+packages <- dplyr::filter(si$packages, attached, !package %in% 
     c("usethis", "devtools", "graphics", "grDevices", 
       "utils", "datasets", "lintr", "methods", "stats", "bindrcpp",
       "testthat"))
+dplyr::select(packages, package, loadedversion, date, source)
 ```
+
+The specific version of the code used to generate this report can be found here:
+
+```{r, cache=FALSE, echo=FALSE}
+get_sha <- function(path) {
+  suppressWarnings({
+    sha <- tryCatch(system(paste0("git ls-remote git@github.com:", path, ".git"),
+      intern = TRUE, ignore.stderr = TRUE), error = function(e) " ")
+  })
+  if (is.null(attr(sha, "status")))
+    substr(sha[grepl("HEAD", sha)], 1, 7)
+  else
+    "xxxxxxx"
+}
+sha <- get_sha("pbs-assess/cpue-reports")
+```
+
+<`r paste0("https://github.com/pbs-assess/gfplot/tree/", sha_gfplot)`>
