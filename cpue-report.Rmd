@@ -413,7 +413,7 @@ dplyr::select(packages, package, loadedversion, date, source)
 
 The specific version of the code used to generate this report can be found here:
 
-```{r, cache=FALSE, echo=FALSE}
+```{r hash, cache=FALSE, echo=FALSE}
 get_sha <- function(path) {
   suppressWarnings({
     sha <- tryCatch(system(paste0("git ls-remote git@github.com:", path, ".git"),
@@ -427,4 +427,4 @@ get_sha <- function(path) {
 sha <- get_sha("pbs-assess/cpue-reports")
 ```
 
-<`r paste0("https://github.com/pbs-assess/gfplot/tree/", sha_gfplot)`>
+<`r paste0("https://github.com/pbs-assess/gfplot/tree/", sha)`>
