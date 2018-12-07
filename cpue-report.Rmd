@@ -21,8 +21,8 @@ knitr::opts_chunk$set(
   message = FALSE,
   comment = "#>",
   fig.asp = 0.618,
-  cache.path = paste0(spp, "-", params$era, "-cache/"),
-  fig.path = paste0(spp, "-", params$era, "-fig/"),
+  cache.path = paste0(spp, "-", params$era, "-", params$area_name, "-cache/"),
+  fig.path = paste0(spp, "-", params$era,  "-", params$area_name, "-fig/"),
   echo = TRUE,
   autodep = TRUE,
   cache = TRUE,
@@ -236,7 +236,8 @@ if (params$skip_single_variable_models) {
     formula_version %in% c("Unstandardized", "Full standardization"))
 }
 
-file_model <- here(paste0("data/generated/cpue-models-", spp, "-", params$era, ".rds"))
+file_model <- here(paste0("data/generated/cpue-models-", spp, "-", params$era,  
+  "-", params$area_name,  ".rds"))
 if (!file.exists(file_model)) {
   system.time({
   model <- plyr::mlply(torun, function(formula, area, formula_version) {
@@ -252,7 +253,7 @@ if (!file.exists(file_model)) {
 
 predictions <- plyr::ldply(model, predict_cpue_index_tweedie)
 write_csv(predictions, 
-  here(paste0("data/generated/cpue-predictions-", spp, "-", params$era, ".csv")))
+  here(paste0("data/generated/cpue-predictions-", spp, "-", params$era, "-", params$area_name, ".csv")))
 ```
 
 In the predictions data frame (file `r paste0("cpue-predictions-", spp, "-", params$era, ".csv")`, `est_link` is the estimate on the link (log) scale, `se_link` is the standard error on the link scale, and `est`, `lwr`, `upr` are the estimate, lower 95%, and upper 95% confidence intervals on the natural (exponentiated) scale in kg/hours fished. All of the model versions are included.
