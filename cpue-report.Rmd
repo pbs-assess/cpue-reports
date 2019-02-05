@@ -12,6 +12,7 @@ params:
    era: "modern"
    april1_year: FALSE
    min_year_historic: 1956
+   parallel: FALSE
 ---
 
 ```{r setup, include=FALSE}
@@ -189,7 +190,7 @@ for (i in seq_along(dfleet)) {
 }
 
 if (params$era == "modern") {
-  formulas <- data_frame(
+  formulas <- tibble::tibble(
     formula = c(
       "cpue ~ 0 + year_factor",
       "cpue ~ 0 + year_factor + depth",
@@ -197,6 +198,7 @@ if (params$era == "modern") {
       "cpue ~ 0 + year_factor + latitude",
       "cpue ~ 0 + year_factor + (1 | locality)",
       "cpue ~ 0 + year_factor + (1 | vessel)",
+      "cpue ~ 0 + year_factor + depth + month + latitude + (1 | locality) + (1 | vessel)",
       "cpue ~ 0 + year_factor + depth + month + latitude + (1 | locality) + (1 | vessel) + (1 | year_locality)"
     ),
     formula_version = c(
@@ -206,16 +208,18 @@ if (params$era == "modern") {
       "Latitude",
       "Locality",
       "Vessel",
+      "Full (without\nlocality-year effects)",
       "Full standardization"
     )
   )
 } else {
-  formulas <- data_frame(
+  formulas <- tibble::tibble(
   formula = c(
     "cpue ~ 0 + year_factor",
     "cpue ~ 0 + year_factor + depth",
     "cpue ~ 0 + year_factor + month",
     "cpue ~ 0 + year_factor + (1 | locality)",
+    "cpue ~ 0 + year_factor + depth + month + (1 | locality)",
     "cpue ~ 0 + year_factor + depth + month + (1 | locality) + (1 | year_locality)"
   ),
   formula_version = c(
@@ -237,6 +241,10 @@ if (params$skip_single_variable_models) {
     formula_version %in% c("Unstandardized", "Full standardization"))
 }
 
+if (params$parallel) {
+  library("doParallel")
+  registerDoParallel(cores = floor(parallel::detectCores()/2L))
+}
 file_model <- here(paste0("data/generated/cpue-models-", spp, "-", params$era,  
   "-", params$area_name,  ".rds"))
 if (!file.exists(file_model)) {
@@ -245,7 +253,7 @@ if (!file.exists(file_model)) {
     df <- dfleet[[which(params$area_name == area)]]
     message("Fitting area ", area, " and model ", formula)
     fit_cpue_index_glmmtmb(df, as.formula(formula))
-    })
+    }, .parallel = params$parallel)
   })
   saveRDS(model, file_model)
 } else {
