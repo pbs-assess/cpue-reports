@@ -110,3 +110,19 @@ rmarkdown::render("cpue-report.Rmd",
   ),
   output_file = "pacific-cod-cpue-historic.html"
 )
+
+# --------------------------------------------------------------------------------
+
+trash_cache('widow-rockfish', 'modern', '3CD5ABCDE')
+rmarkdown::render("cpue-report.Rmd",
+  params = list(
+    species_proper = "Widow Rockfish",
+    area = c("^3C|^3D|^5A|^5B|^5C|^5D|^5E"),
+    area_name = c("3CD5ABCDE"),
+    skip_single_variable_models = FALSE,
+    april1_year = TRUE,
+    era = "modern",
+    parallel = TRUE
+  ),
+  output_file = "widow-rockfish-3CD5ABCDE-cpue-modern.html"
+)
