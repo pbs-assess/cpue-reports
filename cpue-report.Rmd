@@ -84,7 +84,7 @@ if (params$era == "modern") {
       use_alt_year = params$april1_year,
       year_range = c(1996, 2017), 
       lat_range = c(48, Inf),
-      min_positive_tows = 100,
+      min_positive_fe = 100,
       min_positive_trips = 5,
       min_yrs_with_trips = 5,
       depth_band_width = 25,
