@@ -434,6 +434,6 @@ packages <- dplyr::filter(si$packages, attached, !package %in%
     c("usethis", "devtools", "graphics", "grDevices", 
       "utils", "datasets", "lintr", "methods", "stats", "bindrcpp",
       "testthat"))
-dplyr::select(packages, package, loadedversion, date, source)
+dplyr::select(as.data.frame(packages), package, loadedversion, date, source)
 ```
 
