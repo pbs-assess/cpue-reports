@@ -72,7 +72,7 @@ if (params$era == "modern") {
 }
 ```
 
-Define our fleet. See the help for `?gfplot::tidy_cpue_index` and `?gfplot::tidy_cpue_historic` to see a definition of these arguments. <https://github.com/pbs-assess/gfplot>
+Define our fleet. See the help for `?gfplot::tidy_cpue_index` and `?gfplot::tidy_cpue_historical` to see a definition of these arguments. <https://github.com/pbs-assess/gfplot>
 
 ```{r define-fleet}
 if (params$era == "modern") {
@@ -98,7 +98,7 @@ if (params$era == "modern") {
   dfleet <- map2(params$area, params$area_name, define_fleet)
 } else {
   define_fleet <- function(area, area_name) {
-    out <- gfplot::tidy_cpue_historic(d,
+    out <- gfplot::tidy_cpue_historical(d,
       species_common = tolower(params$species_proper),
       use_alt_year = params$april1_year,
       year_range = c(params$min_year_historic, 1995),
@@ -181,7 +181,7 @@ for (i in seq_along(dfleet)) {
 }
 ```
 
-Now fit the models. These are GMLMs with a Tweedie / compound-Poisson-Gamma observation model. Note that the `p` parameter, in [TMB notation](https://kaskr.github.io/adcomp/group__R__style__distribution.html#ga262f3c2d1cf36f322a62d902a608aae0), is bounded to be between 1 (fully Poisson) and 2 (fully Gamma). We will fit a model with only the year predictor`r if (params$skip_single_variable_models) "" else ", a model with each of the other predictors and year,"` and then a model with all of the predictors. The full model in lme4 syntax is: 
+Fit the standardization models. These are GMLMs with a Tweedie / compound-Poisson-Gamma observation model. Note that the `p` parameter, in [TMB notation](https://kaskr.github.io/adcomp/group__R__style__distribution.html#ga262f3c2d1cf36f322a62d902a608aae0), is bounded to be between 1 (fully Poisson) and 2 (fully Gamma). We will fit a model with only the year predictor`r if (params$skip_single_variable_models) "" else ", a model with each of the other predictors and year,"` and then a model with all of the predictors. The full model in lme4 syntax is: 
 `r if (params$era == "modern") "cpue ~ 0 + year_factor + depth + month + latitude + (1 | locality) + (1 | vessel) + (1 | year_locality)" else "cpue ~ 0 + year_factor + depth + month + (1 | locality) + (1 | year_locality)"`.
 
 ```{r fit-cpue, results='hide', warning=FALSE, message=FALSE}
@@ -227,6 +227,7 @@ if (params$era == "modern") {
     "Depth",
     "Month",
     "Locality",
+    "Full (without\nlocality-year effects)",
     "Full standardization"
   )
 )
