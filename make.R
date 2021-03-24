@@ -1,7 +1,36 @@
 source('trash-cache.R')
 env <- new.env(parent = baseenv())
+library(here)
 
 # ------------------------------------------------------------------------------
+
+# 2021-03-24:
+rmarkdown::render("cpue-report.Rmd",
+  params = list(
+    species_proper = "Longspine Thornyhead",
+    area = c("^3C|^3D|^5A|^5B|^5C|^5D|^5E|^4B"),
+    area_name = c("3CD5ABCDE4B"),
+    skip_single_variable_models = FALSE,
+    april1_year = FALSE,
+    era = "modern"
+  ),
+  output_file = "longspine-thornyhead-cpue-modern-3CD5ABCDE4B.html"
+)
+
+# 2021-03-24:
+rmarkdown::render("cpue-report.Rmd",
+  params = list(
+    species_proper = "Longspine Thornyhead",
+    area = c("^3C|^3D"),
+    area_name = c("3CD"),
+    skip_single_variable_models = FALSE,
+    april1_year = FALSE,
+    era = "modern"
+  ),
+  output_file = "longspine-thornyhead-cpue-modern-3CD.html"
+)
+
+
 
 trash_cache('rougheye', 'modern', '5DE')
 trash_cache('rougheye', 'modern', '3CD5AB')
@@ -125,4 +154,74 @@ rmarkdown::render("cpue-report.Rmd",
     parallel = TRUE
   ),
   output_file = "widow-rockfish-3CD5ABCDE-cpue-modern.html"
+)
+
+# --------------------------------------------------------------------------------
+
+rmarkdown::render("cpue-report-pjs.Rmd",
+  params = list(
+    file = "~/Downloads/wwr_totBC.csv",
+    species_proper = "Widow Rockfish",
+    area_name = c("3CD5ABCDE"),
+    skip_single_variable_models = FALSE,
+    era = "modern",
+    parallel = TRUE
+  ),
+  output_file = "widow-rockfish-3CD5ABCDE-cpue-modern-pjs.html"
+)
+
+# -----------------------
+
+rmarkdown::render("cpue-report.Rmd",
+  params = list(
+    species_proper = "Shortraker Rockfish",
+    area = c("^5C|^5D|^5E"),
+    area_name = c("5CDE"),
+    skip_single_variable_models = FALSE,
+    min_year_historic = 1980,
+    april1_year = FALSE,
+    era = "historic"
+  ),
+  output_file = "shortraker-rockfish-cpue-historical-5CDE.html"
+)
+
+
+rmarkdown::render("cpue-report.Rmd",
+  params = list(
+    species_proper = "Shortraker Rockfish",
+    area = c("^5C|^5D|^5E"),
+    area_name = c("5CDE"),
+    skip_single_variable_models = FALSE,
+    min_year_historic = 1980,
+    april1_year = FALSE,
+    era = "modern"
+  ),
+  output_file = "shortraker-rockfish-cpue-modern-5CDE.html"
+)
+
+rmarkdown::render("cpue-report.Rmd",
+  params = list(
+    species_proper = "Shortraker Rockfish",
+    area = c("^3C|^3D|^5A|^5B|^5C|^5D|^5E"),
+    area_name = c("3CD5ABCDE"),
+    skip_single_variable_models = FALSE,
+    min_year_historic = 1978,
+    april1_year = FALSE,
+    era = "historic"
+  ),
+  output_file = "shortraker-rockfish-cpue-historical-coast.html"
+)
+
+
+rmarkdown::render("cpue-report.Rmd",
+  params = list(
+    species_proper = "Shortraker Rockfish",
+    area = c("^3C|^3D|^5A|^5B|^5C|^5D|^5E"),
+    area_name = c("3CD5ABCDE"),
+    skip_single_variable_models = FALSE,
+    min_year_historic = 1978,
+    april1_year = FALSE,
+    era = "modern"
+  ),
+  output_file = "shortraker-rockfish-cpue-modern-coast.html"
 )
