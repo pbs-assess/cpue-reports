@@ -4,6 +4,32 @@ library(here)
 
 # ------------------------------------------------------------------------------
 
+# 2021-04-23:
+rmarkdown::render("cpue-report.Rmd",
+  params = list(
+    species_proper = "Arrowtooth Flounder",
+    area = c("^5A|^5B|^5C|^5D|^5E"),
+    area_name = c("5ABCDE4B"),
+    skip_single_variable_models = FALSE,
+    april1_year = TRUE,
+    era = "modern"
+  ),
+  output_file = "arrowtooth-flounder-cpue-modern-5ABCDE.html"
+)
+
+# 2021-04-23:
+rmarkdown::render("cpue-report.Rmd",
+  params = list(
+    species_proper = "Arrowtooth Flounder",
+    area = c("^3C|^3D"),
+    area_name = c("3CD"),
+    skip_single_variable_models = FALSE,
+    april1_year = TRUE,
+    era = "modern"
+  ),
+  output_file = "arrowtooth-flounder-cpue-modern-3CD.html"
+)
+
 # 2021-03-24:
 rmarkdown::render("cpue-report.Rmd",
   params = list(
@@ -25,7 +51,22 @@ rmarkdown::render("cpue-report.Rmd",
     area_name = c("3CD"),
     skip_single_variable_models = FALSE,
     april1_year = FALSE,
-    era = "modern"
+    era = "modern",
+    final_year = 2020
+  ),
+  output_file = "longspine-thornyhead-cpue-modern-3CD.html"
+)
+
+# 2021-03-24:
+rmarkdown::render("cpue-report.Rmd",
+  params = list(
+    species_proper = "Longspine Thornyhead",
+    area = c("^3C|^3D"),
+    area_name = c("3CD"),
+    skip_single_variable_models = FALSE,
+    april1_year = FALSE,
+    era = "modern",
+    final_year = 2020
   ),
   output_file = "longspine-thornyhead-cpue-modern-3CD.html"
 )

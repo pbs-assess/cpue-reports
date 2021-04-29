@@ -82,7 +82,7 @@ if (params$era == "modern") {
       gear = "bottom trawl",
       alt_year_start_date = "04-01",
       use_alt_year = params$april1_year,
-      year_range = c(1996, 2017), 
+      year_range = c(1996, 2021),
       lat_range = c(48, Inf),
       min_positive_tows = 100,
       min_positive_trips = 5,
