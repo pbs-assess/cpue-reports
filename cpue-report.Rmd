@@ -12,6 +12,7 @@ params:
    era: "modern"
    april1_year: FALSE
    min_year_historic: 1956
+   discard_only: FALSE
    parallel: FALSE
 ---
 
@@ -76,6 +77,9 @@ Define our fleet. See the help for `?gfplot::tidy_cpue_index` and `?gfplot::tidy
 
 ```{r define-fleet}
 if (params$era == "modern") {
+  if (params$discard_only) {
+    d1996 <- dplyr::filter(d1996, discarded_kg > 0)
+  }
   define_fleet <- function(area, area_name) {
     out <- gfplot::tidy_cpue_index(d1996,
       species_common = tolower(params$species_proper),
@@ -249,11 +253,21 @@ if (params$parallel) {
 file_model <- here(paste0("data/generated/cpue-models-", spp, "-", params$era,  
   "-", params$area_name,  ".rds"))
 if (!file.exists(file_model)) {
+  
+  if (params$discard_only) {
+    fit_func <- function(dat, formula = cpue ~ year_factor, ...)  {
+    glmmTMB::glmmTMB(as.formula(formula), data = dat, family = Gamma(link = "log"), 
+      control = glmmTMB::glmmTMBControl(optCtrl = list(iter.max = 2000, 
+        eval.max = 2000), profile = TRUE, collect = FALSE),  ...)
+    }
+  } else {
+    fit_func <- gfplot::fit_cpue_index_glmmtmb
+  }
   system.time({
-  model <- plyr::mlply(torun, function(formula, area, formula_version) {
-    df <- dfleet[[which(params$area_name == area)]]
-    message("Fitting area ", area, " and model ", formula)
-    fit_cpue_index_glmmtmb(df, as.formula(formula))
+    model <- plyr::mlply(torun, function(formula, area, formula_version) {
+      df <- dfleet[[which(params$area_name == area)]]
+      message("Fitting area ", area, " and model ", formula)
+      fit_func(df, as.formula(formula))
     }, .parallel = params$parallel)
   })
   saveRDS(model, file_model)

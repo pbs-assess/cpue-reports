@@ -4,12 +4,92 @@ library(here)
 
 # ------------------------------------------------------------------------------
 
+# 2021-06-15:
+rmarkdown::render("cpue-report.Rmd",
+  params = list(
+    species_proper = "Arrowtooth Flounder",
+    area = c("^5A|^5B|^5C|^5D|^5E|^3C|^3D"),
+    area_name = c("3CD5ABCDE"),
+    skip_single_variable_models = TRUE,
+    april1_year = TRUE,
+    discard_only = TRUE,
+    era = "modern"
+  ),
+  output_file = "arrowtooth-flounder-cpue-modern-3CD5ABCDE-discard-only.html"
+)
+
+# 2021-06-16:
+rmarkdown::render("cpue-report.Rmd",
+  params = list(
+    species_proper = "Arrowtooth Flounder",
+    area = c("^5C|^5D"),
+    area_name = c("5CD"),
+    skip_single_variable_models = TRUE,
+    april1_year = TRUE,
+    discard_only = TRUE,
+    era = "modern"
+  ),
+  output_file = "arrowtooth-flounder-cpue-modern-5CD-discard-only.html"
+)
+
+# 2021-06-15:
+rmarkdown::render("cpue-report.Rmd",
+  params = list(
+    species_proper = "Arrowtooth Flounder",
+    area = c("^5A|^5B|^5C|^5D|^5E|^3C|^3D"),
+    area_name = c("3CD5ABCDE"),
+    skip_single_variable_models = TRUE,
+    april1_year = TRUE,
+    era = "modern"
+  ),
+  output_file = "arrowtooth-flounder-cpue-modern-3CD5ABCDE.html"
+)
+
+# 2021-06-15:
+rmarkdown::render("cpue-report.Rmd",
+  params = list(
+    species_proper = "Arrowtooth Flounder",
+    area = c("^5E"),
+    area_name = c("5E"),
+    skip_single_variable_models = TRUE,
+    april1_year = TRUE,
+    era = "modern"
+  ),
+  output_file = "arrowtooth-flounder-cpue-modern-5E.html"
+)
+
+# 2021-06-15:
+rmarkdown::render("cpue-report.Rmd",
+  params = list(
+    species_proper = "Arrowtooth Flounder",
+    area = c("^5C|^5D"),
+    area_name = c("5CD"),
+    skip_single_variable_models = TRUE,
+    april1_year = TRUE,
+    era = "modern"
+  ),
+  output_file = "arrowtooth-flounder-cpue-modern-5CD.html"
+)
+
+# 2021-06-15:
+rmarkdown::render("cpue-report.Rmd",
+  params = list(
+    species_proper = "Arrowtooth Flounder",
+    area = c("^5A|^5B"),
+    area_name = c("5AB"),
+    skip_single_variable_models = TRUE,
+    april1_year = TRUE,
+    era = "modern"
+  ),
+  output_file = "arrowtooth-flounder-cpue-modern-5AB.html"
+)
+
 # 2021-04-23:
 rmarkdown::render("cpue-report.Rmd",
   params = list(
     species_proper = "Arrowtooth Flounder",
     area = c("^5A|^5B|^5C|^5D|^5E"),
-    area_name = c("5ABCDE4B"),
+    area_name = c("5ABCDE"),
     skip_single_variable_models = FALSE,
     april1_year = TRUE,
     era = "modern"
