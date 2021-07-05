@@ -4,14 +4,35 @@ library(here)
 
 # ------------------------------------------------------------------------------
 
+# 2021-06-30
+rmarkdown::render("cpue-report.Rmd",
+  params = list(
+    species_proper = "Yellowmouth Rockfish",
+    area = c("^5A|^5B|^5C|^5D|^5E|^3C|^3D"),
+    area_name = c("3CD5ABCDE"),
+    skip_single_variable_models = FALSE,
+    april1_year = FALSE,
+    discard_only = FALSE,
+    era = "modern",
+    final_year = 2020,
+    min_positive_trips = 10,
+    min_yrs_with_trips = 5,
+    min_positive_tows = 100
+  ),
+  output_file = "yellowmouth-rockfish-cpue-modern-3CD5ABCDE-10-5-100.html"
+)
+
 # 2021-06-15:
+trash_cache('arrowtooth-flounder', 'modern', '3CD5ABCDE')
 rmarkdown::render("cpue-report.Rmd",
   params = list(
     species_proper = "Arrowtooth Flounder",
     area = c("^5A|^5B|^5C|^5D|^5E|^3C|^3D"),
     area_name = c("3CD5ABCDE"),
     skip_single_variable_models = TRUE,
-    april1_year = TRUE,
+    use_alt_year = TRUE,
+    alt_year_start_date = "02-21",
+    final_year = 2020,
     discard_only = TRUE,
     era = "modern"
   ),
@@ -25,7 +46,7 @@ rmarkdown::render("cpue-report.Rmd",
     area = c("^5C|^5D"),
     area_name = c("5CD"),
     skip_single_variable_models = TRUE,
-    april1_year = TRUE,
+    use_alt_year = TRUE,
     discard_only = TRUE,
     era = "modern"
   ),
@@ -39,7 +60,7 @@ rmarkdown::render("cpue-report.Rmd",
     area = c("^5A|^5B|^5C|^5D|^5E|^3C|^3D"),
     area_name = c("3CD5ABCDE"),
     skip_single_variable_models = TRUE,
-    april1_year = TRUE,
+    use_alt_year = TRUE,
     era = "modern"
   ),
   output_file = "arrowtooth-flounder-cpue-modern-3CD5ABCDE.html"
@@ -52,7 +73,7 @@ rmarkdown::render("cpue-report.Rmd",
     area = c("^5E"),
     area_name = c("5E"),
     skip_single_variable_models = TRUE,
-    april1_year = TRUE,
+    use_alt_year = TRUE,
     era = "modern"
   ),
   output_file = "arrowtooth-flounder-cpue-modern-5E.html"
@@ -65,7 +86,7 @@ rmarkdown::render("cpue-report.Rmd",
     area = c("^5C|^5D"),
     area_name = c("5CD"),
     skip_single_variable_models = TRUE,
-    april1_year = TRUE,
+    use_alt_year = TRUE,
     era = "modern"
   ),
   output_file = "arrowtooth-flounder-cpue-modern-5CD.html"
@@ -78,7 +99,7 @@ rmarkdown::render("cpue-report.Rmd",
     area = c("^5A|^5B"),
     area_name = c("5AB"),
     skip_single_variable_models = TRUE,
-    april1_year = TRUE,
+    use_alt_year = TRUE,
     era = "modern"
   ),
   output_file = "arrowtooth-flounder-cpue-modern-5AB.html"
@@ -91,7 +112,7 @@ rmarkdown::render("cpue-report.Rmd",
     area = c("^5A|^5B|^5C|^5D|^5E"),
     area_name = c("5ABCDE"),
     skip_single_variable_models = FALSE,
-    april1_year = TRUE,
+    use_alt_year = TRUE,
     era = "modern"
   ),
   output_file = "arrowtooth-flounder-cpue-modern-5ABCDE.html"
@@ -104,7 +125,7 @@ rmarkdown::render("cpue-report.Rmd",
     area = c("^3C|^3D"),
     area_name = c("3CD"),
     skip_single_variable_models = FALSE,
-    april1_year = TRUE,
+    use_alt_year = TRUE,
     era = "modern"
   ),
   output_file = "arrowtooth-flounder-cpue-modern-3CD.html"
@@ -117,7 +138,7 @@ rmarkdown::render("cpue-report.Rmd",
     area = c("^3C|^3D|^5A|^5B|^5C|^5D|^5E|^4B"),
     area_name = c("3CD5ABCDE4B"),
     skip_single_variable_models = FALSE,
-    april1_year = FALSE,
+    use_alt_year = FALSE,
     era = "modern"
   ),
   output_file = "longspine-thornyhead-cpue-modern-3CD5ABCDE4B.html"
@@ -130,7 +151,7 @@ rmarkdown::render("cpue-report.Rmd",
     area = c("^3C|^3D"),
     area_name = c("3CD"),
     skip_single_variable_models = FALSE,
-    april1_year = FALSE,
+    use_alt_year = FALSE,
     era = "modern",
     final_year = 2020
   ),
@@ -144,7 +165,7 @@ rmarkdown::render("cpue-report.Rmd",
     area = c("^3C|^3D"),
     area_name = c("3CD"),
     skip_single_variable_models = FALSE,
-    april1_year = FALSE,
+    use_alt_year = FALSE,
     era = "modern",
     final_year = 2020
   ),
@@ -161,7 +182,7 @@ rmarkdown::render("cpue-report.Rmd",
     area = c("^3C|^3D|^5A|^5B"),
     area_name = c("3CD5AB"),
     skip_single_variable_models = FALSE,
-    april1_year = FALSE,
+    use_alt_year = FALSE,
     era = "modern"
   ),
   output_file = "rougheye-cpue-modern-3CD5AB.html",
@@ -174,7 +195,7 @@ rmarkdown::render("cpue-report.Rmd",
     area = c("^5D|^5E"),
     area_name = c("5DE"),
     skip_single_variable_models = FALSE,
-    april1_year = FALSE,
+    use_alt_year = FALSE,
     era = "modern"
   ),
   output_file = "rougheye-cpue-modern-5DE.html",
@@ -189,7 +210,7 @@ rmarkdown::render("cpue-report.Rmd",
     area_name = c("3CD5ABCDE4B"),
     skip_single_variable_models = FALSE,
     min_year_historic = 1978,
-    april1_year = FALSE,
+    use_alt_year = FALSE,
     era = "historic"
   ),
   output_file = "rougheye-cpue-historic.html",
@@ -245,7 +266,7 @@ rmarkdown::render("cpue-report.Rmd",
     species_proper = "Pacific Cod",
     area = c("5[ABCD]+", "3[CD]+"),
     area_name = c("5ABCD", "3CD"),
-    april1_year = TRUE,
+    use_alt_year = TRUE,
     era = "modern"
   ),
   output_file = "pacific-cod-cpue-modern.html"
@@ -255,7 +276,7 @@ rmarkdown::render("cpue-report.Rmd",
   params = list(
     species_proper = "Pacific Cod",
     area = c("5[ABCD]+", "3[CD]+"),
-    april1_year = TRUE,
+    use_alt_year = TRUE,
     era = "historic"
   ),
   output_file = "pacific-cod-cpue-historic.html"
@@ -270,7 +291,7 @@ rmarkdown::render("cpue-report.Rmd",
     area = c("^3C|^3D|^5A|^5B|^5C|^5D|^5E"),
     area_name = c("3CD5ABCDE"),
     skip_single_variable_models = FALSE,
-    april1_year = TRUE,
+    use_alt_year = TRUE,
     era = "modern",
     parallel = TRUE
   ),
@@ -300,7 +321,7 @@ rmarkdown::render("cpue-report.Rmd",
     area_name = c("5CDE"),
     skip_single_variable_models = FALSE,
     min_year_historic = 1980,
-    april1_year = FALSE,
+    use_alt_year = FALSE,
     era = "historic"
   ),
   output_file = "shortraker-rockfish-cpue-historical-5CDE.html"
@@ -314,7 +335,7 @@ rmarkdown::render("cpue-report.Rmd",
     area_name = c("5CDE"),
     skip_single_variable_models = FALSE,
     min_year_historic = 1980,
-    april1_year = FALSE,
+    use_alt_year = FALSE,
     era = "modern"
   ),
   output_file = "shortraker-rockfish-cpue-modern-5CDE.html"
@@ -327,7 +348,7 @@ rmarkdown::render("cpue-report.Rmd",
     area_name = c("3CD5ABCDE"),
     skip_single_variable_models = FALSE,
     min_year_historic = 1978,
-    april1_year = FALSE,
+    use_alt_year = FALSE,
     era = "historic"
   ),
   output_file = "shortraker-rockfish-cpue-historical-coast.html"
@@ -341,7 +362,7 @@ rmarkdown::render("cpue-report.Rmd",
     area_name = c("3CD5ABCDE"),
     skip_single_variable_models = FALSE,
     min_year_historic = 1978,
-    april1_year = FALSE,
+    use_alt_year = FALSE,
     era = "modern"
   ),
   output_file = "shortraker-rockfish-cpue-modern-coast.html"
