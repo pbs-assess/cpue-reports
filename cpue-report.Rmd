@@ -4,16 +4,21 @@ author: "`r params$author`"
 date: "`r Sys.Date()`"
 output: html_document
 params:
-   author: "Sean C. Anderson"
-   species_proper: "Pacific Cod"
+   author: "Sean Anderson"
+   species_proper: "Arrowtooth Flounder"
    area: !r c("3[CD]+")
    area_name: !r c("3CD")
    skip_single_variable_models: TRUE
    era: "modern"
-   april1_year: FALSE
+   use_alt_year: TRUE
+   alt_year_start_date: "04-01"
    min_year_historic: 1956
-   discard_only: FALSE
+   discard_only: TRUE
    parallel: FALSE
+   min_positive_tows: 100
+   min_positive_trips: 5
+   min_yrs_with_trips: 5
+   final_year: 2020
 ---
 
 ```{r setup, include=FALSE}
@@ -61,11 +66,12 @@ if (params$era == "modern") {
   } else {
     d1996 <- read_rds(fi)
   }
+  d1996$fishing_event_id_unique <- paste0(d1996$vessel_registration_number, "-", d1996$trip_id, "-", d1996$fishing_event_id)
 } else {
   fi <- here("data/cpue-historic.rds")
   if (!file.exists(fi)) {
     d <- gfplot::get_cpue_historic(species = NULL, end_year = 1995, 
-      alt_year_start_date = "04-01")
+      alt_year_start_date = params$alt_year_start_date)
     write_rds(d, fi)
   } else {
     d <- read_rds(fi)
@@ -75,22 +81,38 @@ if (params$era == "modern") {
 
 Define our fleet. See the help for `?gfplot::tidy_cpue_index` and `?gfplot::tidy_cpue_historical` to see a definition of these arguments. <https://github.com/pbs-assess/gfplot>
 
+```{r, eval=FALSE, include=FALSE}
+  # fe <- unique(d1996a$fishing_event_id_unique)
+  # y <- filter(d1996, fishing_event_id_unique %in% fe)
+  # 
+  # group_by(y, species_common_name) %>% summarise(landed_kg = sum(landed_kg)) %>% arrange(-landed_kg) %>% top_n(10) -> .top
+  # 
+  # y$year <- lubridate::year(y$best_date)
+  # y %>% filter(species_common_name %in% .top$species_common_name) %>% 
+  #   group_by(species_common_name, year) %>% summarise(landed_kg = sum(landed_kg)) %>% 
+  #   ggplot(aes(year, landed_kg)) + geom_col() +
+  #   facet_wrap(~species_common_name)
+  # ggsave("~/Downloads/fig.png")
+```
+
 ```{r define-fleet}
 if (params$era == "modern") {
   if (params$discard_only) {
-    d1996 <- dplyr::filter(d1996, discarded_kg > 0)
+    d1996 <- dplyr::filter(d1996, discarded_kg > 0,
+      landed_kg == 0, species_common_name == toupper(params$species_proper))
   }
+
   define_fleet <- function(area, area_name) {
     out <- gfplot::tidy_cpue_index(d1996,
       species_common = tolower(params$species_proper),
       gear = "bottom trawl",
-      alt_year_start_date = "04-01",
-      use_alt_year = params$april1_year,
-      year_range = c(1996, 2021),
+      alt_year_start_date = params$alt_year_start_date,
+      use_alt_year = params$use_alt_year,
+      year_range = c(1996, params$final_year),
       lat_range = c(48, Inf),
-      min_positive_tows = 100,
-      min_positive_trips = 5,
-      min_yrs_with_trips = 5,
+      min_positive_tows = params$min_positive_tows,
+      min_positive_trips = params$min_positive_trips,
+      min_yrs_with_trips = params$min_yrs_with_trips,
       depth_band_width = 25,
       area_grep_pattern = area,
       depth_bin_quantiles = c(0.001, 0.999),
@@ -172,7 +194,29 @@ for (i in seq_along(dfleet)) {
         group = group) %>%
       print()
     
-      
+  freezer_trawlers <-
+  tibble::tibble(Vessel = c("Viking Enterprise",
+                            "Northern Alliance",
+                            "Osprey #1",
+                            "Raw Spirit",
+                            "Pacific Legacy #1",
+                            "Sunderoey",
+                            "Viking Alliance"),
+                 FOS.ID = c(310913,
+                            312275,
+                            310988,
+                            312405,
+                            313334,
+                            313464,
+                            313224),
+                 GFBIO.ID = c(568,
+                              592,
+                              569,
+                              595,
+                              608,
+                              NA,
+                              1727))
+  
   gfplot:::plot_predictor_bubbles(dfleet[[i]], "vessel",
     group = group) %>%
     print()
