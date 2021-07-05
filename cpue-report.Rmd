@@ -81,20 +81,6 @@ if (params$era == "modern") {
 
 Define our fleet. See the help for `?gfplot::tidy_cpue_index` and `?gfplot::tidy_cpue_historical` to see a definition of these arguments. <https://github.com/pbs-assess/gfplot>
 
-```{r, eval=FALSE, include=FALSE}
-  # fe <- unique(d1996a$fishing_event_id_unique)
-  # y <- filter(d1996, fishing_event_id_unique %in% fe)
-  # 
-  # group_by(y, species_common_name) %>% summarise(landed_kg = sum(landed_kg)) %>% arrange(-landed_kg) %>% top_n(10) -> .top
-  # 
-  # y$year <- lubridate::year(y$best_date)
-  # y %>% filter(species_common_name %in% .top$species_common_name) %>% 
-  #   group_by(species_common_name, year) %>% summarise(landed_kg = sum(landed_kg)) %>% 
-  #   ggplot(aes(year, landed_kg)) + geom_col() +
-  #   facet_wrap(~species_common_name)
-  # ggsave("~/Downloads/fig.png")
-```
-
 ```{r define-fleet}
 if (params$era == "modern") {
   if (params$discard_only) {
@@ -193,29 +179,6 @@ for (i in seq_along(dfleet)) {
       gfplot:::plot_predictor_bubbles("latitude",
         group = group) %>%
       print()
-    
-  freezer_trawlers <-
-  tibble::tibble(Vessel = c("Viking Enterprise",
-                            "Northern Alliance",
-                            "Osprey #1",
-                            "Raw Spirit",
-                            "Pacific Legacy #1",
-                            "Sunderoey",
-                            "Viking Alliance"),
-                 FOS.ID = c(310913,
-                            312275,
-                            310988,
-                            312405,
-                            313334,
-                            313464,
-                            313224),
-                 GFBIO.ID = c(568,
-                              592,
-                              569,
-                              595,
-                              608,
-                              NA,
-                              1727))
   
   gfplot:::plot_predictor_bubbles(dfleet[[i]], "vessel",
     group = group) %>%
