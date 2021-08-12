@@ -19,6 +19,10 @@ params:
    min_positive_trips: 5
    min_yrs_with_trips: 5
    final_year: 2020
+   final_date: !r NULL
+   depth_bin_quantiles: !r c(0.001, 0.999)
+   lat_range: !r c(48, Inf)
+   depth_range: !r c(-Inf, Inf)
 ---
 
 ```{r setup, include=FALSE}
@@ -61,7 +65,7 @@ fishing_event_trip <- if (params$era == "modern") "fishing event" else "trip"
 if (params$era == "modern") {
   fi <- here("data/cpue-modern.rds")
   if (!file.exists(fi)) {
-    d1996 <- gfplot::get_cpue_index(gear = "bottom trawl", min_cpue_year = 1996)
+    d1996 <- gfdata::get_cpue_index(gear = "bottom trawl", min_cpue_year = 1996)
     write_rds(d1996, fi)
   } else {
     d1996 <- read_rds(fi)
@@ -70,7 +74,7 @@ if (params$era == "modern") {
 } else {
   fi <- here("data/cpue-historic.rds")
   if (!file.exists(fi)) {
-    d <- gfplot::get_cpue_historic(species = NULL, end_year = 1995, 
+    d <- gfdata::get_cpue_historic(species = NULL, end_year = 1995, 
       alt_year_start_date = params$alt_year_start_date)
     write_rds(d, fi)
   } else {
@@ -87,6 +91,13 @@ if (params$era == "modern") {
     d1996 <- dplyr::filter(d1996, discarded_kg > 0,
       landed_kg == 0, species_common_name == toupper(params$species_proper))
   }
+  if (!is.null(params$final_date)) {
+     d1996 <- dplyr::filter(d1996, best_date <= lubridate::ymd(params$final_date))
+  }
+  
+  d1996 <- dplyr::filter(d1996, 
+    best_depth >= params$depth_range[[1]],
+    best_depth <= params$depth_range[[2]])
 
   define_fleet <- function(area, area_name) {
     out <- gfplot::tidy_cpue_index(d1996,
@@ -95,13 +106,13 @@ if (params$era == "modern") {
       alt_year_start_date = params$alt_year_start_date,
       use_alt_year = params$use_alt_year,
       year_range = c(1996, params$final_year),
-      lat_range = c(48, Inf),
+      lat_range = params$lat_range,
       min_positive_tows = params$min_positive_tows,
       min_positive_trips = params$min_positive_trips,
       min_yrs_with_trips = params$min_yrs_with_trips,
       depth_band_width = 25,
       area_grep_pattern = area,
-      depth_bin_quantiles = c(0.001, 0.999),
+      depth_bin_quantiles = params$depth_bin_quantiles,
       min_bin_prop = 0.001,
       lat_band_width = 0.1)
     out$area <- area_name
@@ -116,7 +127,7 @@ if (params$era == "modern") {
       year_range = c(params$min_year_historic, 1995),
       depth_band_width = 25,
       area_grep_pattern = area,
-      depth_bin_quantiles = c(0.001, 0.999),
+      depth_bin_quantiles = params$depth_bin_quantiles,
       min_bin_prop = 0.001)
     out$area <- area_name
     out
