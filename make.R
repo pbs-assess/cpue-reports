@@ -11,18 +11,38 @@ rmarkdown::render("cpue-report.Rmd",
     area = c("^5A|^5B|^5C|^5D|^5E|^3C|^3D"),
     area_name = c("3CD5ABCDE"),
     skip_single_variable_models = FALSE,
-    april1_year = FALSE,
+    use_alt_year = FALSE,
     discard_only = FALSE,
     era = "modern",
     final_year = 2020,
     min_positive_trips = 10,
     min_yrs_with_trips = 5,
-    min_positive_tows = 100
+    min_positive_tows = 100,
+    depth_bin_quantiles = c(0, 1),
+    lat_range = c(48, 56),
+    depth_range = c(100, 425)
   ),
   output_file = "yellowmouth-rockfish-cpue-modern-3CD5ABCDE-10-5-100.html"
 )
 
-# 2021-06-15:
+trash_cache('arrowtooth-flounder', 'modern', '3CD5ABCDE')
+rmarkdown::render("cpue-report.Rmd",
+  params = list(
+    species_proper = "Arrowtooth Flounder",
+    area = c("^5A|^5B|^5C|^5D|^5E|^3C|^3D"),
+    area_name = c("3CD5ABCDE"),
+    skip_single_variable_models = TRUE,
+    use_alt_year = FALSE,
+    alt_year_start_date = "02-21",
+    final_year = 2021,
+    final_date = "2021-07-26",
+    discard_only = TRUE,
+    era = "modern"
+  ),
+  output_file = "arrowtooth-flounder-cpue-modern-3CD5ABCDE-discard-only-jan-1.html"
+)
+
+# 2021-06-15
 trash_cache('arrowtooth-flounder', 'modern', '3CD5ABCDE')
 rmarkdown::render("cpue-report.Rmd",
   params = list(
@@ -32,7 +52,8 @@ rmarkdown::render("cpue-report.Rmd",
     skip_single_variable_models = TRUE,
     use_alt_year = TRUE,
     alt_year_start_date = "02-21",
-    final_year = 2020,
+    final_year = 2021,
+    final_date = "2021-07-26",
     discard_only = TRUE,
     era = "modern"
   ),
