@@ -10,16 +10,16 @@ params:
    area_name: !r c("3CD")
    skip_single_variable_models: TRUE
    era: "modern"
-   use_alt_year: TRUE
-   alt_year_start_date: "04-01"
+   use_alt_year: FALSE
+   alt_year_start_date: "02-21"
    min_year_historic: 1956
    discard_only: TRUE
    parallel: FALSE
    min_positive_tows: 100
    min_positive_trips: 5
    min_yrs_with_trips: 5
-   final_year: 2020
-   final_date: !r NULL
+   final_year: 2021
+   final_date: "2021-12-31"
    depth_bin_quantiles: !r c(0.001, 0.999)
    lat_range: !r c(48, Inf)
    depth_range: !r c(-Inf, Inf)

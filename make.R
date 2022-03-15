@@ -4,6 +4,29 @@ library(here)
 
 # ------------------------------------------------------------------------------
 
+# 2022-03-15
+rmarkdown::render("cpue-report.Rmd",
+  params = list(
+    species_proper = "Canary Rockfish",
+    area = c("^5A|^5B|^5C|^5D|^5E|^3C|^3D"),
+    area_name = c("3CD5ABCDE"),
+    skip_single_variable_models = FALSE,
+    use_alt_year = FALSE,
+    discard_only = FALSE,
+    era = "modern",
+    final_year = 2021,
+    min_positive_trips = 10,
+    min_yrs_with_trips = 5,
+    min_positive_tows = 100,
+    depth_bin_quantiles = c(0, 1),
+    # lat_range = c(48, 56),
+    depth_range = c(50, 350),
+    final_date = "2021-12-31"
+  ),
+  output_file = "canary-rockfish-cpue-modern-3CD5ABCDE-10-5-100-2.html"
+)
+
+
 # 2021-06-30
 rmarkdown::render("cpue-report.Rmd",
   params = list(
