@@ -9,11 +9,11 @@ params:
    area: !r c("3[CD]+")
    area_name: !r c("3CD")
    skip_single_variable_models: TRUE
-   era: "historical"
+   era: "modern"
    use_alt_year: FALSE
    alt_year_start_date: "02-21"
    min_year_historic: 1956
-   discard_only: TRUE
+   discard_only: FALSE
    parallel: FALSE
    min_positive_tows: 100
    min_positive_trips: 5
@@ -62,6 +62,7 @@ fishing_event_trip <- if (params$era == "modern") "fishing event" else "trip"
 ```
 
 ```{r cpue}
+dir.create(here("data"), showWarnings = FALSE)
 if (params$era == "modern") {
   fi <- here("data/cpue-modern.rds")
   if (!file.exists(fi)) {
@@ -72,7 +73,7 @@ if (params$era == "modern") {
   }
   d1996$fishing_event_id_unique <- paste0(d1996$vessel_registration_number, "-", d1996$trip_id, "-", d1996$fishing_event_id)
 } else {
-  fi <- here("data/cpue-historic.rds")
+  fi <- here("data/cpue-historical.rds")
   if (!file.exists(fi)) {
     d <- gfdata::get_cpue_historical(species = NULL, end_year = 1995, 
       alt_year_start_date = params$alt_year_start_date)
@@ -123,7 +124,7 @@ if (params$era == "modern") {
   define_fleet <- function(area, area_name) {
     out <- gfplot::tidy_cpue_historical(d,
       species_common = tolower(params$species_proper),
-      use_alt_year = params$april1_year,
+      use_alt_year = params$use_alt_year,
       year_range = c(params$min_year_historic, 1995),
       depth_band_width = 25,
       area_grep_pattern = area,
