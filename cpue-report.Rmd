@@ -51,6 +51,8 @@ library("readr")
 library("purrr")
 library("glmmTMB")
 ggplot2::theme_set(gfplot::theme_pbs())
+dir.create(here("data"), showWarnings = FALSE)
+dir.create(here("data", "generated"), showWarnings = FALSE)
 ```
 
 ```{r cpue-params-print}
@@ -62,7 +64,6 @@ fishing_event_trip <- if (params$era == "modern") "fishing event" else "trip"
 ```
 
 ```{r cpue}
-dir.create(here("data"), showWarnings = FALSE)
 if (params$era == "modern") {
   fi <- here("data/cpue-modern.rds")
   if (!file.exists(fi)) {
@@ -329,7 +330,7 @@ make_fe_plots <- function(object) {
     ), lwd = 1.25) +
     geom_point() +
     facet_wrap(~par_group, scales = "free") +
-    theme_pbs() + guides(shape = FALSE, colour = FALSE) +
+    theme_pbs() + guides(shape = "none", colour = "none") +
     labs(x = "Coefficient value (log space)", y = "Predictor value")
 }
 make_re_dat <- function(object) {
@@ -354,7 +355,7 @@ make_re_plots <- function(object, re_names = c("locality")) {
   geom_vline(xintercept = 0, lty = 2, alpha = 0.4) +
   geom_point(bg = "white") +
   facet_wrap(~par_group, scales = "free") +
-  theme_pbs() + guides(shape = FALSE, colour = FALSE) +
+  theme_pbs() + guides(shape = "none", colour = "none") +
   labs(x = "Random intercept value (log space)", y = "")
 }
 make_year_locality_plots <- function(object) {
@@ -366,7 +367,7 @@ make_year_locality_plots <- function(object) {
     geom_line(alpha = 0.3) +
     facet_wrap(~loc_group) +
     scale_x_continuous(breaks = seq(1900, 3000, 10)) +
-    theme_pbs() + guides(shape = FALSE, colour = FALSE) +
+    theme_pbs() + guides(shape = "none", colour = "none") +
     labs(x = "Year", y = "Random intercept\n(interaction) value (log space)")
 }
 ```
