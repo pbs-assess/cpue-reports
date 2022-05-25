@@ -9,7 +9,7 @@ params:
    area: !r c("3[CD]+")
    area_name: !r c("3CD")
    skip_single_variable_models: TRUE
-   era: "modern"
+   era: "historical"
    use_alt_year: FALSE
    alt_year_start_date: "02-21"
    min_year_historic: 1956
@@ -74,7 +74,7 @@ if (params$era == "modern") {
 } else {
   fi <- here("data/cpue-historic.rds")
   if (!file.exists(fi)) {
-    d <- gfdata::get_cpue_historic(species = NULL, end_year = 1995, 
+    d <- gfdata::get_cpue_historical(species = NULL, end_year = 1995, 
       alt_year_start_date = params$alt_year_start_date)
     write_rds(d, fi)
   } else {
