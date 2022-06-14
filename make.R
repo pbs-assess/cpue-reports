@@ -1,6 +1,9 @@
-source('trash-cache.R')
-env <- new.env(parent = baseenv())
+# source('trash-cache.R')
+# env <- new.env(parent = baseenv())
 library(here)
+
+# Latest runs are at the top. Old function calls further down may no longer run
+# because of updates to the .Rmd file but are left here as a reference.
 
 # 2022-06-09:
 
