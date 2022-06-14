@@ -5,9 +5,9 @@ date: "`r Sys.Date()`"
 output: html_document
 params:
    author: "Sean Anderson"
-   species_proper: "Arrowtooth Flounder"
-   area: !r c("3[CD]+")
-   area_name: !r c("3CD")
+   species_proper: "Canary Rockfish"
+   area: !r c("^5A|^5B|^5C|^5D|^5E|^3C|^3D")
+   area_name: !r c("Coastwide")
    skip_single_variable_models: TRUE
    era: "modern"
    use_alt_year: FALSE
@@ -15,8 +15,8 @@ params:
    min_year_historic: 1956
    discard_only: FALSE
    parallel: FALSE
-   min_positive_tows: 100
-   min_positive_trips: 5
+   min_positive_tows: 140
+   min_positive_trips: 10
    min_yrs_with_trips: 5
    final_year: 2021
    final_date: "2021-12-31"
@@ -158,6 +158,8 @@ dfleet %>% bind_rows() %>%
   ylim(0, NA)
 ```
 
+Total catch is `r round(sum(bind_rows(dfleet)$spp_catch) / 1000, 0)` t.
+
 Look at depth distribution across all `r fishing_event_trip`s:
 
 ```{r cpue-depth, fig.asp=0.618}
@@ -204,6 +206,8 @@ for (i in seq_along(dfleet)) {
     print()
 }
 ```
+
+Total number of vessels is `r length(unique(bind_rows(dfleet)$vessel_registration_number))`.
 
 Fit the standardization models. These are GMLMs with a Tweedie / compound-Poisson-Gamma observation model. Note that the `p` parameter, in [TMB notation](https://kaskr.github.io/adcomp/group__R__style__distribution.html#ga262f3c2d1cf36f322a62d902a608aae0), is bounded to be between 1 (fully Poisson) and 2 (fully Gamma). We will fit a model with only the year predictor`r if (params$skip_single_variable_models) "" else ", a model with each of the other predictors and year,"` and then a model with all of the predictors. The full model in lme4 syntax is: 
 `r if (params$era == "modern") "cpue ~ 0 + year_factor + depth + month + latitude + (1 | locality) + (1 | vessel) + (1 | year_locality)" else "cpue ~ 0 + year_factor + depth + month + (1 | locality) + (1 | year_locality)"`.
