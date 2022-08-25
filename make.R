@@ -1,4 +1,4 @@
-# source('trash-cache.R')
+source('trash-cache.R')
 # env <- new.env(parent = baseenv())
 library(here)
 
@@ -6,6 +6,24 @@ library(here)
 # because of updates to the .Rmd file but are left here as a reference.
 
 # 2022-06-09:
+
+trash_cache('arrowtooth-flounder', 'modern', '3CD5ABCDE')
+rmarkdown::render("cpue-report.Rmd",
+  params = list(
+    species_proper = "Arrowtooth Flounder",
+    area = c("^5A|^5B|^5C|^5D|^5E|^3C|^3D"),
+    area_name = c("3CD5ABCDE"),
+    skip_single_variable_models = FALSE,
+    use_alt_year = FALSE,
+    alt_year_start_date = "02-21",
+    final_year = 2021,
+    final_date = "2021-12-31",
+    discard_only = TRUE,
+    era = "modern"
+  ),
+  output_file = "arrowtooth-flounder-cpue-modern-3CD5ABCDE-discard-only-Aug-10.html"
+)
+
 
 rmarkdown::render("cpue-report.Rmd",
   params = list(
