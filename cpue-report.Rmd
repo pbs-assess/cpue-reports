@@ -180,26 +180,81 @@ Make bubble plots of `r fishing_event_trip` counts. The open circles represent a
 
 ```{r bubble-plots, fig.asp=0.75, echo=FALSE}
 group <- if (params$era == "modern") "fishing_event_id" else "trip_id"
+
+dfleet_sum <- dfleet %>% bind_rows() %>% 
+  group_by(area) %>% summarise(locality = length(unique(locality)), depth = length(unique(depth)), latitude = length(unique(latitude)), vessel = length(unique(vessel)), month = length(unique(month)))
+
+# for (i in seq_along(dfleet)) {
+#   gfplot:::plot_predictor_bubbles(dfleet[[i]], "locality",
+#     group = group) %>% print()
+#   
+#   dfleet[[i]] %>% mutate(depth = as.factor(as.character(depth))) %>% 
+#     gfplot:::plot_predictor_bubbles("depth",
+#       group = group) %>%
+#     print()
+#   
+#   if (params$era == "modern") {
+#     dfleet[[i]] %>% mutate(latitude = as.factor(as.character(latitude))) %>% 
+#       gfplot:::plot_predictor_bubbles("latitude",
+#         group = group) %>%
+#       print()
+#   
+#   gfplot:::plot_predictor_bubbles(dfleet[[i]], "vessel",
+#     group = group) %>%
+#     print()
+#   }
+#   
+#   dfleet[[i]] %>% mutate(month = as.factor(as.character(month))) %>% 
+#     gfplot:::plot_predictor_bubbles("month",
+#       group = group) %>%
+#     print()
+# }
+```
+
+```{r bubble-plots-1, fig.asp=max(dfleet_sum$locality)/70, echo=FALSE}
 for (i in seq_along(dfleet)) {
-  gfplot:::plot_predictor_bubbles(dfleet[[i]], "locality",
-    group = group) %>% print()
+   p <- gfplot:::plot_predictor_bubbles(dfleet[[i]], "locality",
+    group = group) + theme(axis.text.y = element_blank(), 
+                           axis.ticks.y = element_blank())
+   p %>% print()
+}
+```
+
+```{r bubble-plots-2, fig.asp=max(dfleet_sum$depth)/50, echo=FALSE}
+for (i in seq_along(dfleet)) {
   
   dfleet[[i]] %>% mutate(depth = as.factor(as.character(depth))) %>% 
     gfplot:::plot_predictor_bubbles("depth",
       group = group) %>%
     print()
-  
+}
+```
+
+```{r bubble-plots-3, fig.asp=max(dfleet_sum$latitude)/60, echo=FALSE}
+for (i in seq_along(dfleet)) {
   if (params$era == "modern") {
     dfleet[[i]] %>% mutate(latitude = as.factor(as.character(latitude))) %>% 
       gfplot:::plot_predictor_bubbles("latitude",
         group = group) %>%
       print()
-  
-  gfplot:::plot_predictor_bubbles(dfleet[[i]], "vessel",
-    group = group) %>%
-    print()
   }
+}
+```
+
+```{r bubble-plots-4, fig.asp=max(dfleet_sum$vessel)/50, echo=FALSE}
+for (i in seq_along(dfleet)) {
+  if (params$era == "modern") {
   
+  p <- gfplot:::plot_predictor_bubbles(dfleet[[i]], "vessel",
+    group = group) + theme(axis.text.y = element_blank(), 
+                           axis.ticks.y = element_blank())
+   p %>% print()
+  }
+}
+```
+
+```{r bubble-plots-5, fig.asp=max(dfleet_sum$month)/30, echo=FALSE}
+for (i in seq_along(dfleet)) {
   dfleet[[i]] %>% mutate(month = as.factor(as.character(month))) %>% 
     gfplot:::plot_predictor_bubbles("month",
       group = group) %>%
