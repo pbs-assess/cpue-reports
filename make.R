@@ -5,7 +5,71 @@ library(here)
 # Latest runs are at the top. Old function calls further down may no longer run
 # because of updates to the .Rmd file but are left here as a reference.
 
-# 2022-06-09:
+trash_cache('walleye-pollock', 'modern', '5CDE')
+rmarkdown::render("cpue-report.Rmd",
+  params = list(
+    species_proper = "Walleye Pollock",
+    area = c("^5C|^5D|^5E"),
+    area_name = c("5CDE"),
+    skip_single_variable_models = FALSE,
+    use_alt_year = FALSE,
+    final_year = 2023,
+    final_date = "2023-12-31",
+    discard_only = FALSE,
+    era = "modern"
+  ),
+  output_file = "walleye-pollock-cpue-5CDE-2024-12-17.html"
+)
+
+trash_cache('walleye-pollock', 'modern', '3CD5AB')
+rmarkdown::render("cpue-report.Rmd",
+  params = list(
+    species_proper = "Walleye Pollock",
+    area = c("^3C|^3D|^5A|^5B"),
+    area_name = c("3CD5AB"),
+    skip_single_variable_models = FALSE,
+    use_alt_year = FALSE,
+    final_year = 2023,
+    final_date = "2023-12-31",
+    discard_only = FALSE,
+    era = "modern"
+  ),
+  output_file = "walleye-pollock-cpue-3CD5AB-2024-12-17.html"
+)
+
+
+trash_cache('arrowtooth-flounder', 'modern', '3CD5ABCDE')
+rmarkdown::render("cpue-report.Rmd",
+  params = list(
+    species_proper = "Arrowtooth Flounder",
+    area = c("^5A|^5B|^5C|^5D|^5E|^3C|^3D"),
+    area_name = c("3CD5ABCDE"),
+    skip_single_variable_models = FALSE,
+    use_alt_year = FALSE,
+    final_year = 2023,
+    final_date = "2023-12-31",
+    discard_only = TRUE,
+    era = "modern"
+  ),
+  output_file = "arrowtooth-flounder-cpue-modern-3CD5ABCDE-discard-only-2024-07-26.html"
+)
+
+
+rmarkdown::render("cpue-report.Rmd",
+  params = list(
+    species_proper = "Arrowtooth Flounder",
+    area = c("^5A|^5B|^5C|^5D|^5E|^3C|^3D"),
+    area_name = c("3CD5ABCDE"),
+    skip_single_variable_models = TRUE,
+    use_alt_year = TRUE,
+    alt_year_start_date = "02-21",
+    final_year = 2021,
+    final_date = "2021-12-31",
+    discard_only = FALSE,
+    era = "modern"
+  ),
+  output_file = "arrowtooth-flounder-cpue-modern-3CD5ABCDE-binomial.html"
+)
 
 trash_cache('arrowtooth-flounder', 'modern', '3CD5ABCDE')
 rmarkdown::render("cpue-report.Rmd",
